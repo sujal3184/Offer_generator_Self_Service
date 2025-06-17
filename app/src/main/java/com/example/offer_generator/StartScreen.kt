@@ -221,13 +221,17 @@ fun StartScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Lokachakra",
-                        color = ProfessionalTheme.OnPrimary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
+                    Row(Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center){
+                        Text(
+                            text = "Lokachakra   ",
+                            color = ProfessionalTheme.OnPrimary,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(R.color.topbarbackgound)
@@ -339,7 +343,7 @@ fun StartScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
                 // Role Selection Grid
                 LazyVerticalGrid(
@@ -641,9 +645,10 @@ fun AnimatedActionSection(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = if (selectedRole != null) "Continue" else "Select a Role",
+                        text = if (selectedRole != null) "Continue" else "Select a Role to Continue",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selectedRole == null) Color.DarkGray else Color.White
                     )
                     if (selectedRole != null) {
                         Spacer(modifier = Modifier.width(10.dp))

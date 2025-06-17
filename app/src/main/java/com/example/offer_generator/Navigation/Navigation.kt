@@ -1,6 +1,7 @@
 package com.example.offer_generator.Navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,18 +13,24 @@ import com.example.offer_generator.Screens.ApplicationForm.ApplicationScreen
 import com.example.offer_generator.Screens.Freelancer.FreelancerDashboard
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeDashboard
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
-import com.example.offer_generator.Screens.Internship.CandidateDashboard
+import com.example.offer_generator.Screens.Internship.InternDashboard
 import com.example.offer_generator.Screens.HR.HRDashboard
+import com.example.offer_generator.Screens.HR.JobOpeningsManager
+import com.example.offer_generator.Screens.HR.JobOpeningsRepository
 import com.example.offer_generator.Screens.HomeScreen
-import com.example.offer_generator.Screens.Internship
+import com.example.offer_generator.Screens.AvailableJobRoles
 import com.example.offer_generator.Screens.Login
 import com.example.offer_generator.Screens.OfferLetters.OfferLetterGenerator
 import com.example.offer_generator.Screens.Registration
 import com.example.offer_generator.StartScreen
+import com.example.offer_generator.ViewModels.JobOpeningsViewModel
 
 @Composable
 fun Navigation(navController: NavHostController = rememberNavController()){
+    val repository = remember { JobOpeningsRepository() }
     val whoLoginViewModel : WhoLoginViewModel = viewModel()
+    val viewModel: JobOpeningsViewModel = viewModel()
+
     NavHost(navController = navController, startDestination = Screen.StartScreen.route) {
 
         composable(Screen.StartScreen.route) {
@@ -32,8 +39,8 @@ fun Navigation(navController: NavHostController = rememberNavController()){
         composable(Screen.HomeScreen.route) {
             HomeScreen(navController, whoLoginViewModel)
         }
-        composable(Screen.InternshipScreen.route) {
-            Internship(navController,whoLoginViewModel)
+        composable(Screen.AvailableJobRoles.route) {
+            AvailableJobRoles(navController,whoLoginViewModel,viewModel)
         }
         composable(Screen.LoginScreen.route) {
             Login(navController, whoLoginViewModel)
@@ -44,7 +51,7 @@ fun Navigation(navController: NavHostController = rememberNavController()){
 
 //        candidate
         composable(Screen.CandidateDashboard.route) {
-            CandidateDashboard(navController,whoLoginViewModel)
+            InternDashboard(navController,whoLoginViewModel)
         }
         composable(Screen.ApplicationForm.route) {
             ApplicationScreen(navController,whoLoginViewModel)
@@ -54,6 +61,10 @@ fun Navigation(navController: NavHostController = rememberNavController()){
 
         composable(Screen.HrDashboard.route) {
             HRDashboard(navController,whoLoginViewModel)
+        }
+
+        composable(Screen.JobOpeningsManager.route) {
+            JobOpeningsManager(navController = navController, viewModel)
         }
 
         composable(

@@ -108,7 +108,7 @@ fun Registration(navController: NavController) {
                             delay = 200,
                             onClick = {
                                 isDrawerOpen = false
-                                navController.navigate(Screen.InternshipScreen.route)
+                                navController.navigate(Screen.AvailableJobRoles.route)
                             }
                         )
 

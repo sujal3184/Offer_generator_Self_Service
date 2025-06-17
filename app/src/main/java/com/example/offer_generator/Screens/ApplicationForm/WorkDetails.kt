@@ -39,6 +39,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.offer_generator.R
+import com.example.offer_generator.Screens.HR.EmploymentType
+import com.example.offer_generator.ViewModels.JobOpeningsViewModel
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import java.io.File
 
@@ -54,7 +56,6 @@ fun WorkDetailsStep(formData: FormData, viewModel: WhoLoginViewModel) {
     val userType = viewModel.getCurrentUserType()
     val context = LocalContext.current
 
-    // Dynamic role options based on user type
     val roleOptions = when (userType) {
         "intern" -> listOf(
             "AI / ML / DL / GenAI",

@@ -105,7 +105,7 @@ fun Login(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
                             delay = 200,
                             onClick = {
                                 isDrawerOpen = false
-                                navController.navigate(Screen.InternshipScreen.route)
+                                navController.navigate(Screen.AvailableJobRoles.route)
                             }
                         )
 

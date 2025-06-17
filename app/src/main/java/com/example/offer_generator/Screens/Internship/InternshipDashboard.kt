@@ -81,7 +81,7 @@ import com.example.offer_generator.common.bottomBar
 import kotlinx.coroutines.delay
 
 @Composable
-fun CandidateDashboard(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
+fun InternDashboard(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
     var showContent by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.offer_generator.common.AppNavigationDrawer
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
@@ -52,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeDatamanger
+import com.example.offer_generator.common.AppNavigationDrawer
 
 @Composable
 fun ApplicationScreen(navController: NavController, whoLoginViewModel : WhoLoginViewModel) {
@@ -140,7 +140,7 @@ fun ApplicationScreen(navController: NavController, whoLoginViewModel : WhoLogin
                         formData = formData,
                         snackbarHostState = snackbarHostState,
                         navController = navController,
-                        viewModel = whoLoginViewModel
+                        viewModel = whoLoginViewModel,
                     )
                 }
                 bottomBar(navController , whoLoginViewModel)

@@ -53,11 +53,16 @@ import com.example.offer_generator.common.FloatingCard
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
+import com.example.offer_generator.Screens.HR.JobOpeningsManager
+import com.example.offer_generator.Screens.HR.JobOpeningsRepository
 import com.example.offer_generator.common.bottomBar
 import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
+
+    val repository = remember { JobOpeningsRepository() }
+
     // Animation states
     var isVisible by remember { mutableStateOf(false) }
     var showContent by remember { mutableStateOf(false) }
@@ -587,16 +592,10 @@ private fun getFreelancerQuickActions(): List<QuickAction> = listOf(
         icon = "📋"
     ),
     QuickAction(
-        title = "Active Contracts",
-        description = "Manage ongoing projects, deliverables, and communicate with clients",
-        buttonText = "Manage Projects",
-        icon = "⚡"
-    ),
-    QuickAction(
-        title = "Earnings Dashboard",
-        description = "Track your income, payment history, and financial performance metrics",
-        buttonText = "View Earnings",
-        icon = "💰"
+        title = "Apply for New Project",
+        description = "Find and apply for fresh freelance opportunities that match your expertise",
+        buttonText = "Apply Now",
+        icon = "🚀"
     )
 )
 
@@ -615,16 +614,10 @@ private fun getInternQuickActions(): List<QuickAction> = listOf(
         icon = "📊"
     ),
     QuickAction(
-        title = "Learning Hub",
-        description = "Access exclusive learning resources and skill development courses",
-        buttonText = "Start Learning",
-        icon = "📚"
-    ),
-    QuickAction(
-        title = "Mentorship Connect",
-        description = "Connect with industry mentors and join professional guidance programs",
-        buttonText = "Find Mentors",
-        icon = "🤝"
+        title = "View Available Roles",
+        description = "Browse all available internship positions across different departments",
+        buttonText = "View Roles",
+        icon = "👀"
     )
 )
 
@@ -643,16 +636,10 @@ private fun getJobSeekerQuickActions(): List<QuickAction> = listOf(
         icon = "📈"
     ),
     QuickAction(
-        title = "Career Assessment",
-        description = "Take comprehensive skills and personality assessments for better job matching",
-        buttonText = "Take Assessment",
-        icon = "🎯"
-    ),
-    QuickAction(
-        title = "Resume Optimizer",
-        description = "Build and optimize your resume with AI-powered suggestions",
-        buttonText = "Optimize Resume",
-        icon = "📄"
+        title = "Apply for New Job",
+        description = "Search and apply for new job opportunities that match your career goals",
+        buttonText = "Apply Now",
+        icon = "✨"
     )
 )
 
@@ -671,16 +658,10 @@ private fun getHRQuickActions(): List<QuickAction> = listOf(
         icon = "📝"
     ),
     QuickAction(
-        title = "Talent Analytics",
-        description = "Access detailed insights on candidate performance and hiring metrics",
-        buttonText = "View Analytics",
-        icon = "📊"
-    ),
-    QuickAction(
-        title = "Offer Management",
-        description = "Create, send, and track job offers and contract negotiations",
-        buttonText = "Manage Offers",
-        icon = "📋"
+        title = "View Available Jobs",
+        description = "Browse all current job openings and their application status",
+        buttonText = "View Jobs",
+        icon = "💼"
     )
 )
 
@@ -838,12 +819,19 @@ private fun FreelancerQuickActions(navController: NavController, showContent: Bo
                     title = "${action.icon} ${action.title}",
                     description = action.description,
                     buttonText = action.buttonText,
-                    onClick = { navController.navigate(Screen.ApplicationForm.route) }
+                    onClick = {
+                        when(action.buttonText) {
+                            "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
+                            "View Proposals" -> navController.navigate(Screen.FlDashboard.route)
+                            "View Projects" -> navController.navigate(Screen.AvailableJobRoles.route)
+                            else -> navController.navigate(Screen.ApplicationForm.route)
+                        }
+                    }
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Divider()
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -874,12 +862,19 @@ private fun InternQuickActions(navController: NavController, showContent: Boolea
                     title = "${action.icon} ${action.title}",
                     description = action.description,
                     buttonText = action.buttonText,
-                    onClick = { navController.navigate(Screen.ApplicationForm.route) }
+                    onClick = {
+                        when(action.buttonText) {
+                            "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
+                            "View Status" -> navController.navigate(Screen.CandidateDashboard.route)
+                            "View Roles" -> navController.navigate(Screen.AvailableJobRoles.route)
+                            else -> navController.navigate(Screen.ApplicationForm.route)
+                        }
+                    }
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Divider()
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -910,12 +905,19 @@ private fun JobSeekerQuickActions(navController: NavController, showContent: Boo
                     title = "${action.icon} ${action.title}",
                     description = action.description,
                     buttonText = action.buttonText,
-                    onClick = { navController.navigate(Screen.ApplicationForm.route) }
+                    onClick = {
+                        when(action.buttonText) {
+                            "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
+                            "Track Progress" -> navController.navigate(Screen.FullTimejobDashboard.route)
+                            "Browse Jobs" -> navController.navigate(Screen.AvailableJobRoles.route)
+                            else -> navController.navigate(Screen.ApplicationForm.route)
+                        }
+                    }
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Divider()
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -946,12 +948,19 @@ private fun HRQuickActions(navController: NavController, showContent: Boolean) {
                     title = "${action.icon} ${action.title}",
                     description = action.description,
                     buttonText = action.buttonText,
-                    onClick = { navController.navigate(Screen.ApplicationForm.route) }
+                    onClick = {
+                        when (action.buttonText) {
+                            "Post Job" -> navController.navigate(Screen.JobOpeningsManager.route)
+                            "View Jobs" -> navController.navigate(Screen.AvailableJobRoles.route)
+                            "Review Applications" -> navController.navigate(Screen.HrDashboard.route)
+
+                        }
+                    }
                 )
                 Spacer(Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Divider()
             Spacer(modifier = Modifier.height(50.dp))
         }

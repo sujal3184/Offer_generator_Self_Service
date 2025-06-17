@@ -5,7 +5,7 @@ sealed class Screen(val route: String) {
     object LoginScreen : Screen("login_screen")
     object RegisterScreen : Screen("register_screen")
     object HomeScreen : Screen("home_screen")
-    object InternshipScreen : Screen("internship_screen")
+    object AvailableJobRoles : Screen("available_job_role_screen")
 
 //    candidate
     object CandidateDashboard : Screen("candidate_dashboard")
@@ -13,6 +13,7 @@ sealed class Screen(val route: String) {
 
 //    HR
     object HrDashboard : Screen("hr_dashboard")
+    object JobOpeningsManager : Screen("job_openings_manager")
 
 //    freelancer
     object FlDashboard : Screen("freelancer_dashboard")

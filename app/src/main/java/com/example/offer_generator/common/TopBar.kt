@@ -153,23 +153,57 @@ private fun DrawerContent(
                 )
 
                 AnimatedNavigationItem(
-                    text = "InternShip",
+                    text = "Available Roles",
                     delay = 200,
                     onClick = {
                         onDrawerClose()
-                        navController.navigate(Screen.InternshipScreen.route)
+                        navController.navigate(Screen.AvailableJobRoles.route)
                     }
                 )
 
-                if(whoLoginViewModel.isUserLoggedIn.value){
-                    AnimatedNavigationItem(
-                        text = "My Application",
-                        delay = 200,
-                        onClick = {
-                            onDrawerClose()
-                            navController.navigate(Screen.CandidateDashboard.route)
-                        }
-                    )
+                val userType = whoLoginViewModel.getCurrentUserType()
+                when(userType){
+                    "freelancer" -> {
+                        AnimatedNavigationItem(
+                            text = "My Projects",
+                            delay = 200,
+                            onClick = {
+                                onDrawerClose()
+                                navController.navigate(Screen.FlDashboard.route)
+                            }
+                        )
+                    }
+                    "intern" -> {
+                        AnimatedNavigationItem(
+                            text = "My Application",
+                            delay = 200,
+                            onClick = {
+                                onDrawerClose()
+                                navController.navigate(Screen.CandidateDashboard.route)
+                            }
+                        )
+                    }
+                    "fulltime" -> {
+                        AnimatedNavigationItem(
+                            text = "My Jobs",
+                            delay = 200,
+                            onClick = {
+                                onDrawerClose()
+                                navController.navigate(Screen.FullTimejobDashboard.route)
+                            }
+                        )
+                    }
+                    "hr" -> {
+                        AnimatedNavigationItem(
+                            text = "Manage Jobs",
+                            delay = 200,
+                            onClick = {
+                                onDrawerClose()
+                                navController.navigate(Screen.HrDashboard.route)
+                            }
+                        )
+                    }
+
                 }
 
                 Spacer(Modifier.height(24.dp))
