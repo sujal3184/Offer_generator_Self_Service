@@ -45,7 +45,7 @@ import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import java.io.File
 
 @Composable
-fun WorkDetailsStep(formData: FormData, viewModel: WhoLoginViewModel) {
+fun WorkDetailsStep(formData: FormData, viewModel: WhoLoginViewModel,jobViewModel: JobOpeningsViewModel) {
     var showFromDatePicker by remember { mutableStateOf(false) }
     var showUntilDatePicker by remember { mutableStateOf(false) }
     var showJoinDatePicker by remember { mutableStateOf(false) }
@@ -56,68 +56,19 @@ fun WorkDetailsStep(formData: FormData, viewModel: WhoLoginViewModel) {
     val userType = viewModel.getCurrentUserType()
     val context = LocalContext.current
 
-    val roleOptions = when (userType) {
-        "intern" -> listOf(
-            "AI / ML / DL / GenAI",
-            "Frontend Development",
-            "Backend Development",
-            "Fullstack Development",
-            "Business and Strategy Research",
-            "Business Analyst",
-            "UX/UI Design",
-            "Marketing",
-            "HR",
-            "Legal",
-            "Project Management",
-            "Data Analysis",
-            "Mobile App Development",
-            "Quality Assurance",
-            "Content Writing"
-        )
-        "freelancer" -> listOf(
-            "AI / ML / DL / GenAI Consultant",
-            "Blockchain Developer",
-            "Web3 Developer",
-            "Frontend Developer",
-            "Backend Developer",
-            "Fullstack Developer",
-            "Business Consultant",
-            "Product Manager",
-            "DevSecOps Engineer",
-            "UX/UI Designer",
-            "Digital Marketing Specialist",
-            "Content Creator",
-            "Technical Writer",
-            "Data Analyst",
-            "Mobile App Developer",
-            "Graphic Designer",
-            "SEO Specialist",
-            "Social Media Manager"
-        )
-        "fulltime" -> listOf(
-            "AI / ML / DL / GenAI Engineer",
-            "Blockchain Developer",
-            "Web3 Engineer",
-            "Senior Frontend Developer",
-            "Senior Backend Developer",
-            "Fullstack Engineer",
-            "Business Analyst",
-            "Product Manager",
-            "Project Manager",
-            "DevSecOps Engineer",
-            "UX/UI Designer",
-            "Marketing Manager",
-            "Legal Counsel",
-            "Chartered Accountant",
-            "Company Secretary",
-            "HR Manager",
-            "Team Lead",
-            "Technical Architect",
-            "Data Scientist",
-            "Software Architect",
-            "Engineering Manager"
-        )
-        else -> listOf("General Position")
+    // Determine employment type based on login state
+    val currentEmploymentType = when {
+        viewModel.isUserLoggedIn.value -> EmploymentType.INTERN
+        viewModel.isFreeLancerLoggedIn.value -> EmploymentType.FREELANCER
+        viewModel.isFulltimeEmployeeLoggedIn.value -> EmploymentType.FULL_TIME // Assuming you have this
+        else -> null
+    }
+
+    // Get available role options based on current employment type
+    val roleOptions = if (currentEmploymentType != null) {
+        jobViewModel.getAvailableRolesForEmploymentType(currentEmploymentType)
+    } else {
+        emptyList()
     }
 
     val experienceOptions = listOf(

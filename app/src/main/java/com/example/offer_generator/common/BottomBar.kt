@@ -150,7 +150,7 @@ fun AnimatedBottomSection(
                 if (hasButtons) {
                     Column {
                         AnimatedBottomButton(onclick = {navController.navigate(Screen.HomeScreen.route)},"Home", 1000)
-                        AnimatedBottomButton(onclick = {navController.navigate(Screen.AvailableJobRoles.route)},"Internship", 120)
+                        AnimatedBottomButton(onclick = {navController.navigate(Screen.AvailableJobRoles.route)},"Available Roles", 120)
                         AnimatedBottomButton(onclick = {if(whoLoginViewModel.isUserLoggedIn.value) navController.navigate(Screen.ApplicationForm.route)
                         else navController.navigate(Screen.LoginScreen.route)},"Apply Now", 1400)
                     }

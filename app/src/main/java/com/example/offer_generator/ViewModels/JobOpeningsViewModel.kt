@@ -140,27 +140,109 @@ class JobOpeningsViewModel : ViewModel() {
     fun getPostedJobsForEmploymentType(employmentType: EmploymentType): List<PostedJob> {
         return postedJobsRepository.getActiveJobs().filter { it.employmentType == employmentType }
     }
+    //    Get available roles for a specific employment type
+    fun getAvailableRolesForEmploymentType(employmentType: EmploymentType): List<String> {
+        val availableRoles = mutableListOf<String>()
+        val currentJobData = repository.getJobOpeningsData()
+
+        currentJobData.forEach { (domainKey, domain) ->
+            domain.roles.forEach { (roleName, employmentTypes) ->
+                val count = employmentTypes[employmentType.name] ?: 0
+                if (count > 0) {
+                    // Map internal role names to display names based on employment type
+                    val displayName = mapRoleToDisplayName(roleName, employmentType)
+                    if (!availableRoles.contains(displayName)) {
+                        availableRoles.add(displayName)
+                    }
+                }
+            }
+        }
+
+        return availableRoles.sorted()
+    }
+
+    // Helper function to map internal role names to user-friendly display names
+    private fun mapRoleToDisplayName(internalRoleName: String, employmentType: EmploymentType): String {
+        return when (employmentType) {
+            EmploymentType.INTERN -> when (internalRoleName) {
+                "AI/ML" -> "AI / ML / DL / GenAI"
+                "Frontend" -> "Frontend Development"
+                "Backend" -> "Backend Development"
+                "Fullstack" -> "Fullstack Development"
+                "Business Strategy" -> "Business and Strategy Research"
+                "Business Analyst" -> "Business Analyst"
+                "UI/UX" -> "UX/UI Design"
+                "Marketing" -> "Marketing"
+                "HR" -> "HR"
+                "Legal" -> "Legal"
+                "Project Management" -> "Project Management"
+                "Blockchain" -> "Data Analysis" // or map to appropriate intern role
+                "Web3" -> "Mobile App Development" // or map to appropriate intern role
+                "DevSecOps" -> "Quality Assurance" // or map to appropriate intern role
+                "Product Management" -> "Content Writing" // or map to appropriate intern role
+                else -> internalRoleName
+            }
+
+            EmploymentType.FREELANCER -> when (internalRoleName) {
+                "AI/ML" -> "AI / ML / DL / GenAI Consultant"
+                "Blockchain" -> "Blockchain Developer"
+                "Web3" -> "Web3 Developer"
+                "Frontend" -> "Frontend Developer"
+                "Backend" -> "Backend Developer"
+                "Fullstack" -> "Fullstack Developer"
+                "Business Strategy" -> "Business Consultant"
+                "Product Management" -> "Product Manager"
+                "DevSecOps" -> "DevSecOps Engineer"
+                "UI/UX" -> "UX/UI Designer"
+                "Marketing" -> "Digital Marketing Specialist"
+                "Business Analyst" -> "Content Creator" // or map appropriately
+                "HR" -> "Technical Writer" // or map appropriately
+                "Legal" -> "Data Analyst" // or map appropriately
+                "Project Management" -> "Mobile App Developer" // or map appropriately
+                "Chartered Accountant" -> "Graphic Designer" // or map appropriately
+                "Company Secretary" -> "SEO Specialist" // or map appropriately
+                else -> internalRoleName
+            }
+
+            EmploymentType.FULL_TIME -> when (internalRoleName) {
+                "AI/ML" -> "AI / ML / DL / GenAI Engineer"
+                "Blockchain" -> "Blockchain Developer"
+                "Web3" -> "Web3 Engineer"
+                "Frontend" -> "Senior Frontend Developer"
+                "Backend" -> "Senior Backend Developer"
+                "Fullstack" -> "Fullstack Engineer"
+                "Business Analyst" -> "Business Analyst"
+                "Product Management" -> "Product Manager"
+                "Project Management" -> "Project Manager"
+                "DevSecOps" -> "DevSecOps Engineer"
+                "UI/UX" -> "UX/UI Designer"
+                "Marketing" -> "Marketing Manager"
+                "Legal" -> "Legal Counsel"
+                "Chartered Accountant" -> "Chartered Accountant"
+                "Company Secretary" -> "Company Secretary"
+                "HR" -> "HR Manager"
+                "Business Strategy" -> "Team Lead" // or map appropriately
+                else -> internalRoleName
+            }
+        }
+    }
+
+    // Reverse mapping function to get internal role name from display name
+    fun getInternalRoleName(displayName: String, employmentType: EmploymentType): String? {
+        val currentJobData = repository.getJobOpeningsData()
+
+        currentJobData.forEach { (domainKey, domain) ->
+            domain.roles.forEach { (roleName, employmentTypes) ->
+                val count = employmentTypes[employmentType.name] ?: 0
+                if (count > 0) {
+                    val mappedDisplayName = mapRoleToDisplayName(roleName, employmentType)
+                    if (mappedDisplayName == displayName) {
+                        return roleName
+                    }
+                }
+            }
+        }
+        return null
+    }
 }
 
-// Add this method to your JobOpeningsRepository class:
-/*
-fun updateJobCountForEmploymentType(domain: String, role: String, employmentType: EmploymentType, action: String) {
-    val currentDomain = _jobOpenings.value[domain] ?: return
-    val currentRoleTypes = currentDomain.roles[role] ?: return
-    val currentCount = currentRoleTypes[employmentType.name] ?: 0
-    val newCount = when (action) {
-        "add" -> currentCount + 1
-        "remove" -> maxOf(0, currentCount - 1)
-        "clear" -> 0  // Add this line
-        else -> currentCount
-    }
-    val updatedEmploymentTypes = currentRoleTypes.toMutableMap()
-    updatedEmploymentTypes[employmentType.name] = newCount
-    val updatedRoles = currentDomain.roles.toMutableMap()
-    updatedRoles[role] = updatedEmploymentTypes
-    val updatedDomain = currentDomain.copy(roles = updatedRoles)
-    val updatedJobOpenings = _jobOpenings.value.toMutableMap()
-    updatedJobOpenings[domain] = updatedDomain
-    _jobOpenings.value = updatedJobOpenings
-}
-*/

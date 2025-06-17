@@ -54,7 +54,7 @@ fun Navigation(navController: NavHostController = rememberNavController()){
             InternDashboard(navController,whoLoginViewModel)
         }
         composable(Screen.ApplicationForm.route) {
-            ApplicationScreen(navController,whoLoginViewModel)
+            ApplicationScreen(navController,whoLoginViewModel,viewModel)
         }
 
 //        HR
