@@ -1,6 +1,10 @@
 package com.example.offer_generator.Screens.Internship
 
 import OfferLetter
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
@@ -29,6 +33,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
@@ -58,6 +63,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +72,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.offer_generator.common.AnimatedButton
@@ -79,6 +86,9 @@ import com.example.offer_generator.Screens.OfferLetters.OfferLetterDetailDialog
 import com.example.offer_generator.Screens.OfferLetters.OfferLettersContent
 import com.example.offer_generator.common.bottomBar
 import kotlinx.coroutines.delay
+import androidx.core.net.toUri
+import firebase.com.protolitewrapper.BuildConfig
+import java.io.File
 
 @Composable
 fun InternDashboard(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
@@ -165,13 +175,15 @@ fun InternDashboard(navController: NavController, whoLoginViewModel: WhoLoginVie
 }
 
 @Composable
-fun EnhancedApplicationsListScreen(navController: NavController,viewmodel: WhoLoginViewModel) {
+fun EnhancedApplicationsListScreen(navController: NavController, viewmodel: WhoLoginViewModel) {
     val applications = remember { InternshipDataManager.applications }
-    val offerLetters = remember { OfferLetterDataManager.offerLetters} // You'll need to add this to your data manager
+
+    // Use mutableStateOf to trigger recomposition when offer letters change
+    var offerLetters by remember { mutableStateOf(OfferLetterDataManager.offerLetters) }
     val statistics = remember { InternshipDataManager.getApplicationStatistics() }
 
     var selectedApplication by remember { mutableStateOf<InternshipApplication?>(null) }
-    var selectedOffer by remember { mutableStateOf<OfferLetter?>(null) } // Create OfferLetter data class
+    var selectedOffer by remember { mutableStateOf<OfferLetter?>(null) }
     var showingApplications by remember { mutableStateOf(true) }
 
     Column(
@@ -233,10 +245,14 @@ fun EnhancedApplicationsListScreen(navController: NavController,viewmodel: WhoLo
             onDismiss = { selectedOffer = null },
             onAccept = {
                 OfferLetterDataManager.updateOfferStatus(offer.id, OfferStatus.ACCEPTED)
+                // Update the local state to trigger recomposition
+                offerLetters = OfferLetterDataManager.offerLetters.toList()
                 selectedOffer = null
             },
             onDecline = {
                 OfferLetterDataManager.updateOfferStatus(offer.id, OfferStatus.REJECTED)
+                // Update the local state to trigger recomposition
+                offerLetters = OfferLetterDataManager.offerLetters.toList()
                 selectedOffer = null
             },
             viewModel = viewmodel
@@ -724,73 +740,278 @@ fun ApplicationDetailDialog(
 
 @Composable
 fun DocumentsSection(application: InternshipApplication) {
-    var showCVViewer by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // Function to open PDF with default viewer
+    fun openPDFWithDefaultViewer() {
+        try {
+
+            var intent: Intent? = null
+
+            when {
+                // Priority 1: Content URI (from document picker)
+                application.cvUri.toString().isNotEmpty() && application.cvUri.toString().startsWith("content://") -> {
+                    try {
+                        val uri = Uri.parse(application.cvUri.toString())
+                        intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(uri, "application/pdf")
+                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PDF_DEBUG", "Error with content URI", e)
+                    }
+                }
+
+                // Priority 2: File path exists
+                application.cvFilePath.isNotEmpty() && File(application.cvFilePath).exists() -> {
+                    try {
+                        val file = File(application.cvFilePath)
+                        val uri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            file
+                        )
+                        intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(uri, "application/pdf")
+                            flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PDF_DEBUG", "Error with file path", e)
+                    }
+                }
+
+                // Priority 3: File URI
+                application.cvUri.toString().isNotEmpty() && application.cvUri.toString().startsWith("file://") -> {
+                    try {
+                        val filePath = Uri.parse(application.cvUri.toString()).path
+                        if (filePath != null && File(filePath).exists()) {
+                            val file = File(filePath)
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                file
+                            )
+                            intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, "application/pdf")
+                                flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PDF_DEBUG", "Error with file URI", e)
+                    }
+                }
+
+                // Priority 4: Try to find file in app directories
+                application.cvFileName.isNotEmpty() -> {
+                    try {
+                        // Check internal files directory
+                        val internalFile = File(context.filesDir, application.cvFileName)
+                        val externalFile = File(context.getExternalFilesDir(null), application.cvFileName)
+
+                        val targetFile = when {
+                            internalFile.exists() -> internalFile
+                            externalFile.exists() -> externalFile
+                            else -> null
+                        }
+
+                        targetFile?.let { file ->
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                file
+                            )
+                            intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, "application/pdf")
+                                flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            }
+                            Log.d("PDF_DEBUG", "Found file in app directory: ${file.absolutePath}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PDF_DEBUG", "Error searching app directories", e)
+                    }
+                }
+            }
+
+            // Launch the intent if we have one
+            intent?.let {
+                try {
+                    // Check if there's an app that can handle this intent
+                    val resolveInfo = context.packageManager.queryIntentActivities(it, 0)
+                    if (resolveInfo.isNotEmpty()) {
+                        context.startActivity(it)
+                    } else {
+                        // Try with a chooser
+                        val chooserIntent = Intent.createChooser(it, "Open PDF with...")
+                        context.startActivity(chooserIntent)
+                    }
+                } catch (e: Exception) {
+                    Log.e("PDF_DEBUG", "Error launching intent", e)
+                    Toast.makeText(context, "Error opening PDF: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            } ?: run {
+                Toast.makeText(context, "Unable to locate PDF file", Toast.LENGTH_SHORT).show()
+                Log.e("PDF_DEBUG", "No valid intent created")
+            }
+
+        } catch (e: Exception) {
+            Log.e("PDF_DEBUG", "General error opening PDF", e)
+            Toast.makeText(context, "Error opening PDF: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
 
     DetailSection(
         title = "Documents",
         icon = Icons.Default.Description
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    if (application.cvFileName.isNotEmpty()) {
-                        showCVViewer = true
-                    }
+        // CV Section
+        DocumentItem(
+            fileName = application.cvFileName,
+            displayName = "CV/Resume",
+            isAvailable = application.cvFileName.isNotEmpty() ||
+                    application.cvUri.toString().isNotEmpty() ||
+                    application.cvFilePath.isNotEmpty(),
+            onClick = {
+                if (application.cvFileName.isNotEmpty() ||
+                    application.cvUri.toString().isNotEmpty() ||
+                    application.cvFilePath.isNotEmpty()) {
+                    openPDFWithDefaultViewer()
+                } else {
+                    Toast.makeText(context, "No CV uploaded", Toast.LENGTH_SHORT).show()
                 }
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    Icons.Default.PictureAsPdf,
-                    contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    application.cvFileName.ifEmpty { "CV not uploaded" },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (application.cvFileName.isNotEmpty()) Color.Black else Color.Gray
-                )
             }
+        )
 
-            if (application.cvFileName.isNotEmpty()) {
-                Icon(
-                    Icons.Default.Visibility,
-                    contentDescription = "View CV",
-                    tint = colorResource(id = R.color.purple),
-                    modifier = Modifier.size(18.dp)
+        // Add spacing between documents
+        Spacer(modifier = Modifier.height(8.dp))
+
+//        // Portfolio section (if available)
+//        if (application.portfolioWebsite.isNotEmpty()) {
+//            DocumentItem(
+//                fileName = "Portfolio Website",
+//                displayName = "Portfolio",
+//                isAvailable = true,
+//                isWebLink = true,
+//                onClick = {
+//                    try {
+//                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(application.portfolioWebsite))
+//                        context.startActivity(intent)
+//                    } catch (e: Exception) {
+//                        Toast.makeText(context, "Unable to open portfolio link", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            )
+//        }
+
+        // Debug information (remove in production)
+        if (BuildConfig.DEBUG) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Debug Info:",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray
+            )
+            Text(
+                "CV URI: ${application.cvUri}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                "CV Path: ${application.cvFilePath}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                "CV Name: ${application.cvFileName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+private fun DocumentItem(
+    fileName: String,
+    displayName: String,
+    isAvailable: Boolean,
+    isWebLink: Boolean = false,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = isAvailable) { onClick() }
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                if (isAvailable) Color.Transparent
+                else Color.Gray.copy(alpha = 0.1f)
+            )
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                if (isWebLink) Icons.Default.Link else Icons.Default.PictureAsPdf,
+                contentDescription = null,
+                tint = if (isAvailable) {
+                    if (isWebLink) colorResource(id = R.color.blue) else Color.Red
+                } else Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isAvailable) Color.Black else Color.Gray
                 )
+                if (isAvailable && fileName.isNotEmpty() && fileName != displayName) {
+                    Text(
+                        text = fileName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
 
-        if (application.cvFileName.isNotEmpty()) {
+        if (isAvailable) {
+            Icon(
+                Icons.Default.Visibility,
+                contentDescription = if (isWebLink) "Open Link" else "View Document",
+                tint = colorResource(id = R.color.purple),
+                modifier = Modifier.size(18.dp)
+            )
+        } else {
             Text(
-                "Tap to view CV",
+                "Not uploaded",
                 style = MaterialTheme.typography.bodySmall,
-                color = colorResource(id = R.color.purple),
-                modifier = Modifier.padding(start = 28.dp)
+                color = Color.Gray
             )
         }
     }
 
-    // Show CV Viewer Dialog
-    if (showCVViewer) {
-        CVViewerDialog(
-            cvUri = application.cvUri,
-            cvFilePath = application.cvFilePath,
-            cvFileName = application.cvFileName,
-            onDismiss = { showCVViewer = false }
+    if (isAvailable) {
+        Text(
+            text = if (isWebLink) "Tap to open link" else "Tap to view document",
+            style = MaterialTheme.typography.bodySmall,
+            color = colorResource(id = R.color.purple),
+            modifier = Modifier.padding(start = 28.dp, top = 2.dp)
         )
     }
 }
-
 @Composable
 fun DetailSection(
     title: String,
@@ -877,8 +1098,7 @@ fun NoApplication(navController: NavController,viewModel : WhoLoginViewModel) {
                         viewModel.isUserLoggedIn.value -> "You haven't applied for any internship yet"
                         viewModel.isHrLoggedIn.value -> "Nobody has applied for any internship yet"
                         else -> ""
-                    }
-                    ,
+                    },
                     style = androidx.compose.material.MaterialTheme.typography.body2,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
@@ -934,9 +1154,6 @@ fun resetForm(formData: FormData) {
     formData.projectStartDate = ""
     formData.projectEndDate = ""
     formData.serviceCategory = ""
-    formData.portfolioFileName = ""
-    formData.portfolioFileUri = null
-    formData.portfolioFilePath = ""
     formData.mobileNumber = ""
     formData.email = ""
     formData.linkedinProfile = ""

@@ -36,8 +36,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -51,7 +54,8 @@ data class UploadedDocument(
     val fileSize: Int,
     val data: ByteArray,
     val uploadedAt: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
-    val localFilePath: String? = null
+    val localFilePath: String? = null,
+    val isUploadedToServer: Boolean = false // New field to track server upload status
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -104,28 +108,95 @@ fun SignedOfferLetterScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isDownloading by remember { mutableStateOf(false) }
     var showSuccessAnimation by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) } // New state for server upload
 
     val context = LocalContext.current
     val isHR = viewModel.isHrLoggedIn.value
 
-    // Enhanced color scheme
-    val purpleGradient = listOf(Color(0xFF7B68EE), Color(0xFF9370DB))
-    val lightPurple = Color(0xFFE6E0FF)
-    val darkPurple = Color(0xFF5A4FCF)
-    val accentPurple = Color(0xFF8A7FFF)
-    val successGreen = Color(0xFF10B981)
-    val errorRed = Color(0xFFEF4444)
+    val coroutineScope = rememberCoroutineScope()
 
-    // Animated values for enhanced UI
+    // Professional color scheme
+    val primaryBlue = Color(0xFF2563EB)
+    val primaryBlueLight = Color(0xFF3B82F6)
+    val primaryBlueDark = Color(0xFF1D4ED8)
+    val backgroundGray = Color(0xFFF8FAFC)
+    val cardWhite = Color(0xFFFFFFFF)
+    val textPrimary = Color(0xFF1E293B)
+    val textSecondary = Color(0xFF64748B)
+    val successGreen = Color(0xFF059669)
+    val errorRed = Color(0xFFDC2626)
+    val warningAmber = Color(0xFFF59E0B)
+    val borderLight = Color(0xFFE2E8F0)
+
+    // Animated values
     val infiniteTransition = rememberInfiniteTransition()
     val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
+        initialValue = 0.4f,
         targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000),
+            animation = tween(2000, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
         )
     )
+
+    // Simulate server upload (replace with actual API call)
+
+    // Remove the @Composable annotation and make it a regular suspend function
+    suspend fun uploadToServer(
+        document: UploadedDocument,
+        onStart: () -> Unit,
+        onSuccess: (UploadedDocument) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        onStart()
+
+        try {
+            // Simulate network delay
+            delay(2000) // Simulate upload time
+
+            // Here you would make your actual API call
+            // For now, we'll simulate success
+            val updatedDocument = document.copy(isUploadedToServer = true)
+            onSuccess(updatedDocument)
+
+        } catch (e: Exception) {
+            onError("Upload failed: ${e.message}")
+        }
+    }
+
+    fun handleUpload(document: UploadedDocument) {
+        coroutineScope.launch {
+            uploadToServer(
+                document = document,
+                onStart = {
+                    isUploading = true
+                    errorMessage = null
+                },
+                onSuccess = { updatedDocument ->
+                    uploadedDocument = updatedDocument
+                    DocumentStorage.setDocument(updatedDocument)
+                    showSuccessAnimation = true
+                    isUploading = false
+
+                    Toast.makeText(
+                        context,
+                        "Document uploaded successfully!",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    // Add a delay to show the success animation, then close the dialog
+                    coroutineScope.launch {
+                        delay(1500) // Wait 1.5 seconds to show success animation
+                        onClose() // Close the dialog
+                    }
+                },
+                onError = { error ->
+                    errorMessage = error
+                    isUploading = false
+                }
+            )
+        }
+    }
 
     // Download PDF to phone's internal storage
     fun downloadPDFToStorage(document: UploadedDocument) {
@@ -149,12 +220,11 @@ fun SignedOfferLetterScreen(
             val updatedDocument = document.copy(localFilePath = file.absolutePath)
             uploadedDocument = updatedDocument
             DocumentStorage.setDocument(updatedDocument)
-            showSuccessAnimation = true
 
             Toast.makeText(
                 context,
-                "PDF saved successfully!",
-                Toast.LENGTH_LONG
+                "PDF saved to device storage",
+                Toast.LENGTH_SHORT
             ).show()
         } catch (e: Exception) {
             Toast.makeText(
@@ -180,7 +250,7 @@ fun SignedOfferLetterScreen(
         DocumentStorage.clearDocument()
         errorMessage = null
         showSuccessAnimation = false
-        Toast.makeText(context, "Document removed successfully", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Document removed", Toast.LENGTH_SHORT).show()
     }
 
     // Activity result launcher for picking PDF files
@@ -202,7 +272,8 @@ fun SignedOfferLetterScreen(
                         uri = it,
                         fileName = fileName,
                         fileSize = data.size,
-                        data = data
+                        data = data,
+                        isUploadedToServer = false
                     )
                     uploadedDocument = document
                     DocumentStorage.setDocument(document)
@@ -259,24 +330,13 @@ fun SignedOfferLetterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        lightPurple.copy(alpha = 0.4f),
-                        Color.White,
-                        lightPurple.copy(alpha = 0.2f)
-                    )
-                )
-            )
+            .background(backgroundGray)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(24.dp)
         ) {
-
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Main Content Area
             Column(
@@ -289,15 +349,21 @@ fun SignedOfferLetterScreen(
                 if (uploadedDocument == null) {
                     if (isHR) {
                         // HR View - No document uploaded yet
-                        HREmptyStateContent(darkPurple, accentPurple, pulseAlpha)
+                        HREmptyStateContent(
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            primaryBlue = primaryBlue,
+                            pulseAlpha = pulseAlpha
+                        )
                     } else {
                         // Candidate View - Upload interface
                         CandidateUploadContent(
                             isLoading = isLoading,
-                            darkPurple = darkPurple,
-                            accentPurple = accentPurple,
-                            lightPurple = lightPurple,
-                            purpleGradient = purpleGradient,
+                            primaryBlue = primaryBlue,
+                            primaryBlueLight = primaryBlueLight,
+                            textPrimary = textPrimary,
+                            textSecondary = textSecondary,
+                            cardWhite = cardWhite,
                             onUploadClick = { pdfPickerLauncher.launch("application/pdf") }
                         )
                     }
@@ -307,12 +373,13 @@ fun SignedOfferLetterScreen(
                         document = uploadedDocument!!,
                         isHR = isHR,
                         showSuccessAnimation = showSuccessAnimation,
-                        darkPurple = darkPurple,
-                        accentPurple = accentPurple,
-                        lightPurple = lightPurple,
+                        primaryBlue = primaryBlue,
+                        textPrimary = textPrimary,
+                        textSecondary = textSecondary,
                         successGreen = successGreen,
-                        onViewPDF = { openPDFWithBuiltInViewer(uploadedDocument!!) },
-                        onRemoveDocument = { removeDocument() }
+                        cardWhite = cardWhite,
+                        borderLight = borderLight,
+                        onViewPDF = { openPDFWithBuiltInViewer(uploadedDocument!!) }
                     )
                 }
 
@@ -330,23 +397,25 @@ fun SignedOfferLetterScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = errorRed.copy(alpha = 0.1f)
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, errorRed.copy(alpha = 0.3f))
                         ) {
                             Row(
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier.padding(20.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Error,
                                     contentDescription = null,
                                     tint = errorRed,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
                                 Text(
                                     text = error,
                                     color = errorRed,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
@@ -354,11 +423,17 @@ fun SignedOfferLetterScreen(
                 }
             }
 
-            // Bottom Actions (only for candidates when document is uploaded)
+            // Bottom Actions
             if (!isHR && uploadedDocument != null) {
                 BottomActionButtons(
-                    darkPurple = darkPurple,
+                    document = uploadedDocument!!,
+                    primaryBlue = primaryBlue,
+                    primaryBlueDark = primaryBlueDark,
                     errorRed = errorRed,
+                    textSecondary = textSecondary,
+                    cardWhite = cardWhite,
+                    isUploading = isUploading,
+                    onUpload = { handleUpload(uploadedDocument!!) },
                     onRemove = { removeDocument() },
                     onClose = onClose
                 )
@@ -366,30 +441,38 @@ fun SignedOfferLetterScreen(
         }
 
         // Loading overlay
-        if (isLoading || isDownloading) {
+        if (isLoading || isDownloading || isUploading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
+                    .background(Color.Black.copy(alpha = 0.6f)),
                 contentAlignment = Alignment.Center
             ) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp)
+                    colors = CardDefaults.cardColors(containerColor = cardWhite),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.shadow(16.dp, RoundedCornerShape(24.dp))
                 ) {
                     Column(
-                        modifier = Modifier.padding(32.dp),
+                        modifier = Modifier.padding(48.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CircularProgressIndicator(
-                            color = accentPurple,
-                            modifier = Modifier.size(48.dp)
+                            color = primaryBlue,
+                            modifier = Modifier.size(56.dp),
+                            strokeWidth = 6.dp
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = if (isLoading) "Processing document..." else "Saving to device...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = darkPurple
+                            text = when {
+                                isLoading -> "Processing document..."
+                                isDownloading -> "Saving to device..."
+                                isUploading -> "Uploading to server..."
+                                else -> "Please wait..."
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            color = textPrimary,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -400,8 +483,9 @@ fun SignedOfferLetterScreen(
 
 @Composable
 private fun HREmptyStateContent(
-    darkPurple: Color,
-    accentPurple: Color,
+    textPrimary: Color,
+    textSecondary: Color,
+    primaryBlue: Color,
     pulseAlpha: Float
 ) {
     Column(
@@ -412,35 +496,37 @@ private fun HREmptyStateContent(
             modifier = Modifier
                 .size(120.dp)
                 .background(
-                    accentPurple.copy(alpha = pulseAlpha),
+                    primaryBlue.copy(alpha = pulseAlpha * 0.3f),
                     CircleShape
-                ),
+                )
+                .shadow(8.dp, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.HourglassEmpty,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = darkPurple
+                tint = primaryBlue
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Waiting for Candidate",
+            text = "Waiting for Document",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = darkPurple
+            color = textPrimary
         )
 
         Text(
-            text = "The candidate has not uploaded their signed offer letter yet. Once uploaded, it will appear here for review.",
+            text = "The candidate hasn't uploaded their signed offer letter yet. You'll be notified once it's available for review.",
             style = MaterialTheme.typography.bodyLarge,
-            color = accentPurple,
+            color = textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp)
+            modifier = Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp),
+            lineHeight = 24.sp
         )
     }
 }
@@ -448,10 +534,11 @@ private fun HREmptyStateContent(
 @Composable
 private fun CandidateUploadContent(
     isLoading: Boolean,
-    darkPurple: Color,
-    accentPurple: Color,
-    lightPurple: Color,
-    purpleGradient: List<Color>,
+    primaryBlue: Color,
+    primaryBlueLight: Color,
+    textPrimary: Color,
+    textSecondary: Color,
+    cardWhite: Color,
     onUploadClick: () -> Unit
 ) {
     Column(
@@ -462,15 +549,16 @@ private fun CandidateUploadContent(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = darkPurple
+            color = textPrimary
         )
 
         Text(
-            text = "Please select and upload your signed offer letter document (PDF format)",
+            text = "Please select your signed offer letter document in PDF format from your device storage",
             style = MaterialTheme.typography.bodyLarge,
-            color = accentPurple,
+            color = textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp, start = 16.dp, end = 16.dp)
+            modifier = Modifier.padding(top = 12.dp, bottom = 40.dp, start = 24.dp, end = 24.dp),
+            lineHeight = 24.sp
         )
 
         // Enhanced Upload Card
@@ -478,66 +566,79 @@ private fun CandidateUploadContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(enabled = !isLoading) { onUploadClick() }
-                .shadow(12.dp, RoundedCornerShape(20.dp)),
+                .shadow(12.dp, RoundedCornerShape(24.dp)),
             colors = CardDefaults.cardColors(
-                containerColor = if (isLoading) Color.Gray.copy(alpha = 0.1f)
-                else lightPurple.copy(alpha = 0.4f)
+                containerColor = if (isLoading) Color.Gray.copy(alpha = 0.1f) else cardWhite
             ),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(
+                width = 2.dp,
+                color = if (isLoading) Color.Gray.copy(alpha = 0.3f) else primaryBlue.copy(alpha = 0.2f)
+            )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(40.dp),
+                    .padding(48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(64.dp),
-                        color = accentPurple,
+                        modifier = Modifier.size(72.dp),
+                        color = primaryBlue,
                         strokeWidth = 6.dp
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                     Text(
-                        text = "Processing your document...",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = accentPurple,
-                        fontWeight = FontWeight.Medium
+                        text = "Processing Document",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = textPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Please wait while we prepare your document...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = textSecondary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 } else {
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(88.dp)
                             .background(
-                                brush = Brush.radialGradient(purpleGradient),
+                                brush = Brush.radialGradient(
+                                    colors = listOf(primaryBlue, primaryBlueLight)
+                                ),
                                 shape = CircleShape
                             )
-                            .shadow(8.dp, CircleShape),
+                            .shadow(12.dp, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.CloudUpload,
                             contentDescription = "Upload",
-                            modifier = Modifier.size(40.dp),
+                            modifier = Modifier.size(44.dp),
                             tint = Color.White
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        text = "Tap to Upload PDF",
+                        text = "Choose PDF Document",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = darkPurple
+                        color = textPrimary
                     )
 
                     Text(
-                        text = "Select your signed offer letter from device storage",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = accentPurple,
+                        text = "Tap here to browse and select your signed offer letter from device storage",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = textSecondary,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 12.dp),
+                        lineHeight = 22.sp
                     )
                 }
             }
@@ -550,36 +651,44 @@ private fun DocumentUploadedContent(
     document: UploadedDocument,
     isHR: Boolean,
     showSuccessAnimation: Boolean,
-    darkPurple: Color,
-    accentPurple: Color,
-    lightPurple: Color,
+    primaryBlue: Color,
+    textPrimary: Color,
+    textSecondary: Color,
     successGreen: Color,
-    onViewPDF: () -> Unit,
-    onRemoveDocument: () -> Unit
+    cardWhite: Color,
+    borderLight: Color,
+    onViewPDF: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Enhanced Success Animation
+        // Status Icon
+        val statusIcon = if (document.isUploadedToServer) {
+            Icons.Default.CheckCircle to successGreen
+        } else {
+            Icons.Default.CloudUpload to primaryBlue
+        }
+
         AnimatedVisibility(
             visible = showSuccessAnimation,
-            enter = scaleIn() + fadeIn(),
+            enter = scaleIn(animationSpec = tween(500)) + fadeIn(),
             exit = scaleOut() + fadeOut()
         ) {
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(96.dp)
                     .background(
-                        successGreen.copy(alpha = 0.2f),
+                        statusIcon.second.copy(alpha = 0.15f),
                         CircleShape
-                    ),
+                    )
+                    .shadow(8.dp, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Success",
-                    modifier = Modifier.size(40.dp),
-                    tint = successGreen
+                    imageVector = statusIcon.first,
+                    contentDescription = "Status",
+                    modifier = Modifier.size(48.dp),
+                    tint = statusIcon.second
                 )
             }
         }
@@ -587,121 +696,145 @@ private fun DocumentUploadedContent(
         if (!showSuccessAnimation) {
             Box(
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(36.dp)
                     .background(
-                        lightPurple.copy(alpha = 0.3f),
+                        statusIcon.second.copy(alpha = 0.15f),
                         CircleShape
-                    ),
+                    )
+                    .shadow(6.dp, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Success",
-                    modifier = Modifier.size(20.dp),
-                    tint = successGreen
+                    imageVector = statusIcon.first,
+                    contentDescription = "Status",
+                    modifier = Modifier.size(36.dp),
+                    tint = statusIcon.second
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = if (isHR) "Document Received!" else "Upload Successful!",
+            text = when {
+                isHR -> "Document Received"
+                document.isUploadedToServer -> "Upload Complete"
+                else -> "Document Ready"
+            },
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            color = darkPurple
+            color = textPrimary
         )
 
         Text(
-            text = if (isHR) "Candidate has uploaded their signed offer letter"
-            else "Your signed offer letter has been uploaded successfully",
-            style = MaterialTheme.typography.bodyMedium,
-            color = accentPurple,
+            text = when {
+                isHR -> "The candidate has successfully uploaded their signed offer letter"
+                document.isUploadedToServer -> "Your signed offer letter has been uploaded successfully"
+                else -> "Document is ready for upload to the server"
+            },
+            style = MaterialTheme.typography.bodyLarge,
+            color = textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
+            modifier = Modifier.padding(top = 12.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
+            lineHeight = 24.sp
         )
 
         // Enhanced File Info Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(8.dp, RoundedCornerShape(16.dp)),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            shape = RoundedCornerShape(16.dp)
+                .shadow(8.dp, RoundedCornerShape(20.dp)),
+            colors = CardDefaults.cardColors(containerColor = cardWhite),
+            shape = RoundedCornerShape(20.dp),
+            border = BorderStroke(1.dp, borderLight)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(24.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(56.dp)
                             .background(
-                                Color.Red.copy(alpha = 0.1f),
-                                RoundedCornerShape(12.dp)
+                                Color(0xFFDC2626).copy(alpha = 0.1f),
+                                RoundedCornerShape(16.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.PictureAsPdf,
                             contentDescription = "PDF",
-                            tint = Color.Red,
-                            modifier = Modifier.size(24.dp)
+                            tint = Color(0xFFDC2626),
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(20.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = document.fileName,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            color = darkPurple
+                            color = textPrimary
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = formatFileSize(document.fileSize),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = textSecondary
+                            )
+                            Text(
+                                text = " • ",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = textSecondary
+                            )
+                            Text(
+                                text = if (document.isUploadedToServer) "Uploaded" else "Local",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (document.isUploadedToServer) successGreen else primaryBlue,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                         Text(
-                            text = formatFileSize(document.fileSize),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = accentPurple
-                        )
-                        Text(
-                            text = "Uploaded: ${document.uploadedAt}",
+                            text = document.uploadedAt,
                             style = MaterialTheme.typography.bodySmall,
-                            color = accentPurple.copy(alpha = 0.7f)
+                            color = textSecondary.copy(alpha = 0.8f)
                         )
                     }
                 }
 
-
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // View PDF Button
                 Button(
                     onClick = onViewPDF,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = accentPurple,
+                        containerColor = primaryBlue,
                         contentColor = Color.White
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Visibility,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "View PDF Document",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
+                        "View Document",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -711,90 +844,129 @@ private fun DocumentUploadedContent(
 
 @Composable
 private fun BottomActionButtons(
-    darkPurple: Color,
+    document: UploadedDocument,
+    primaryBlue: Color,
+    primaryBlueDark: Color,
     errorRed: Color,
+    textSecondary: Color,
+    cardWhite: Color,
+    isUploading: Boolean,
+    onUpload: () -> Unit,
     onRemove: () -> Unit,
     onClose: () -> Unit
 ) {
     Column {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Remove Button
-            OutlinedButton(
-                onClick = onRemove,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = errorRed
-                ),
-                border = BorderStroke(1.dp, errorRed),
-                shape = RoundedCornerShape(12.dp)
+        if (!document.isUploadedToServer) {
+
+            // Remove and Upload buttons before server upload
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Remove", fontWeight = FontWeight.Medium)
-            }
+                // Remove Button
+                OutlinedButton(
+                    onClick = onRemove,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = errorRed,
+                        containerColor = cardWhite
+                    ),
+                    border = BorderStroke(2.dp, errorRed),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isUploading
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Remove",
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
 
-            // Close Button
-            OutlinedButton(
-                onClick = onClose,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = darkPurple
-                ),
-                border = BorderStroke(1.dp, darkPurple),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Close", fontWeight = FontWeight.Medium)
-            }
-        }
-    }
-}
-
-// Helper function to get file name from URI
-fun getFileName(context: Context, uri: Uri): String? {
-    var fileName: String? = null
-
-    if (uri.scheme == "content") {
-        val cursor = context.contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex != -1) {
-                    fileName = it.getString(nameIndex)
+                // Upload Button
+                Button(
+                    onClick = onUpload,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryBlue,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isUploading,
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp
+                    )
+                ) {
+                    if (isUploading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (isUploading) "Uploading..." else "Upload",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
         }
     }
-
-    if (fileName == null) {
-        fileName = uri.path?.let { path ->
-            val cut = path.lastIndexOf('/')
-            if (cut != -1) path.substring(cut + 1) else path
-        }
-    }
-
-    return fileName
 }
 
-// Helper function to format file size
-fun formatFileSize(bytes: Int): String {
-    if (bytes < 1024) return "$bytes B"
+private fun getFileName(context: Context, uri: Uri): String? {
+    var result: String? = null
+    if (uri.scheme == "content") {
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val displayNameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (displayNameIndex != -1) {
+                    result = it.getString(displayNameIndex)
+                }
+            }
+        }
+    }
+    if (result == null) {
+        result = uri.path
+        val cut = result?.lastIndexOf('/')
+        if (cut != -1) {
+            result = result?.substring(cut!! + 1)
+        }
+    }
+    return result
+}
+
+// Utility function to format file size
+private fun formatFileSize(bytes: Int): String {
     val kb = bytes / 1024.0
-    if (kb < 1024) return "${String.format("%.1f", kb)} KB"
     val mb = kb / 1024.0
-    return "${String.format("%.1f", mb)} MB"
+    val gb = mb / 1024.0
+
+    return when {
+        gb >= 1 -> String.format("%.1f GB", gb)
+        mb >= 1 -> String.format("%.1f MB", mb)
+        kb >= 1 -> String.format("%.1f KB", kb)
+        else -> "$bytes B"
+    }
 }

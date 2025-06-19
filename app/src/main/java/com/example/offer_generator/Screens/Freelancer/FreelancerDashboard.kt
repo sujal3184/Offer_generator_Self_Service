@@ -667,84 +667,12 @@ fun ApplicationDetailDialog(
                         }
                     }
 
-                    item {
-                        DocumentsSection(application)
-                    }
-
                 }
             }
         }
     }
 }
 
-@Composable
-fun DocumentsSection(application: FreelancerApplication) {
-    var showCVViewer by remember { mutableStateOf(false) }
-
-    DetailSection(
-        title = "Documents",
-        icon = Icons.Default.Description
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    if (application.portfolioFileName.isNotEmpty()) {
-                        showCVViewer = true
-                    }
-                }
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    Icons.Default.PictureAsPdf,
-                    contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    application.portfolioFileName.ifEmpty { "CV not uploaded" },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (application.portfolioFileName.isNotEmpty()) Color.Black else Color.Gray
-                )
-            }
-
-            if (application.portfolioFilePath.isNotEmpty()) {
-                Icon(
-                    Icons.Default.Visibility,
-                    contentDescription = "View CV",
-                    tint = colorResource(id = R.color.purple),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
-
-        if (application.portfolioFileName.isNotEmpty()) {
-            Text(
-                "Tap to view CV",
-                style = MaterialTheme.typography.bodySmall,
-                color = colorResource(id = R.color.purple),
-                modifier = Modifier.padding(start = 28.dp)
-            )
-        }
-    }
-
-    // Show CV Viewer Dialog
-    if (showCVViewer) {
-        CVViewerDialog(
-            cvUri = application.portfolioUri,
-            cvFilePath = application.portfolioFilePath,
-            cvFileName = application.portfolioFileName,
-            onDismiss = { showCVViewer = false }
-        )
-    }
-}
 
 @Composable
 fun DetailSection(

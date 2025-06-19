@@ -57,6 +57,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
+import com.example.offer_generator.Screens.FulltimeJob.DocumentsSection
 import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatus
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeApplication
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeApplicationStatistics
@@ -507,36 +508,7 @@ fun FulltimeApplicationDetailDialog(
                     }
 
                     item {
-                        DetailSection(
-                            title = "Documents",
-                            icon = Icons.Default.PictureAsPdf
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "CV/Resume",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
-                                )
-                                IconButton(
-                                    onClick = { showCVViewer = true },
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(colorResource(id = R.color.purple).copy(alpha = 0.1f))
-                                ) {
-                                    Icon(
-                                        Icons.Default.Visibility,
-                                        contentDescription = "View CV",
-                                        tint = colorResource(id = R.color.purple),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-                        }
+                        DocumentsSection(application)
                     }
 
                     item {

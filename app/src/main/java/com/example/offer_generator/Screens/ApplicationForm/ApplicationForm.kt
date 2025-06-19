@@ -763,9 +763,6 @@ class FormData {
     var projectStartDate by mutableStateOf("")
     var projectEndDate by mutableStateOf("")
     var serviceCategory by mutableStateOf("")
-    var portfolioFileName by mutableStateOf("")
-    var portfolioFileUri by mutableStateOf<Uri?>(null)
-    var portfolioFilePath by mutableStateOf("")
     var hourlyRate by mutableStateOf("")
 
     // full time
@@ -880,12 +877,10 @@ private fun validateWorkDetails(formData: FormData, userType: String?): Validati
         "freelancer" -> {
             when {
                 formData.projectStartDate.isBlank() -> ValidationResult(false, "Project start date is required", "projectStartDate")
-                formData.projectEndDate.isBlank() -> ValidationResult(false, "Project end date is required", "projectEndDate")
                 !validateProjectDates(formData.projectStartDate, formData.projectEndDate).isValid ->
                     validateProjectDates(formData.projectStartDate, formData.projectEndDate)
                 formData.serviceCategory.isBlank() -> ValidationResult(false, "Service category is required", "serviceCategory")
                 formData.skillsList.isEmpty() -> ValidationResult(false, "At least one skill is required", "skillsList")
-                formData.portfolioFileName.isBlank() -> ValidationResult(false, "Portfolio upload is required", "portfolioFileName")
                 formData.hourlyRate.isBlank() -> ValidationResult(false, "Hourly rate is required", "hourlyRate")
                 !validateHourlyRate(formData.hourlyRate).isValid -> validateHourlyRate(formData.hourlyRate).copy(field = "hourlyRate")
                 else -> ValidationResult(true)
@@ -931,12 +926,12 @@ private fun validateContactInfo(formData: FormData, userType: String?): Validati
         "freelancer" -> {
             // For freelancers, professional profiles are mandatory
             when {
-//                formData.linkedinProfile.isBlank() -> ValidationResult(false, "LinkedIn profile is required for freelancers", "linkedinProfile")
-//                !isValidLinkedInUrl(formData.linkedinProfile) -> ValidationResult(false, "Invalid LinkedIn profile URL", "linkedinProfile")
-//                formData.githubLink.isBlank() -> ValidationResult(false, "GitHub profile is required for freelancers", "githubLink")
-//                !isValidGithubUrl(formData.githubLink) -> ValidationResult(false, "Invalid GitHub profile URL", "githubLink")
-//                formData.portfolioWebsite.isBlank() -> ValidationResult(false, "Portfolio website is required for freelancers", "portfolioWebsite")
-//                !isValidWebsiteUrl(formData.portfolioWebsite) -> ValidationResult(false, "Invalid portfolio website URL", "portfolioWebsite")
+                formData.linkedinProfile.isBlank() -> ValidationResult(false, "LinkedIn profile is required for freelancers", "linkedinProfile")
+                !isValidLinkedInUrl(formData.linkedinProfile) -> ValidationResult(false, "Invalid LinkedIn profile URL", "linkedinProfile")
+                formData.githubLink.isBlank() -> ValidationResult(false, "GitHub profile is required for freelancers", "githubLink")
+                !isValidGithubUrl(formData.githubLink) -> ValidationResult(false, "Invalid GitHub profile URL", "githubLink")
+                formData.portfolioWebsite.isBlank() -> ValidationResult(false, "Portfolio website is required for freelancers", "portfolioWebsite")
+                !isValidWebsiteUrl(formData.portfolioWebsite) -> ValidationResult(false, "Invalid portfolio website URL", "portfolioWebsite")
                 formData.professionalSummary.isBlank() -> ValidationResult(false, "Professional summary is required for freelancers", "professionalSummary")
                 formData.professionalSummary.length < 50 -> ValidationResult(false, "Professional summary must be at least 50 characters long", "professionalSummary")
                 else -> ValidationResult(true)

@@ -290,30 +290,7 @@ fun ContactInfoStep(formData: FormData, viewModel: WhoLoginViewModel) {
             isRequired = userType == "freelancer" || userType == "fulltime"
         )
 
-        // Years of Experience field - now for all user types but with different requirements
-        EnhancedFormTextField(
-            value = formData.yearsOfExperience ?: "",
-            onValueChange = { formData.yearsOfExperience = it },
-            label = when (userType) {
-                "freelancer" -> "Years of Experience *"
-                "fulltime" -> "Years of Experience *"
-                "intern" -> "Years of Experience (Optional)"
-                else -> "Years of Experience (Optional)"
-            },
-            placeholder = when (userType) {
-                "intern" -> "e.g., 0.5 (if any)"
-                else -> "e.g., 2.5"
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            validator = { years ->
-                when (userType) {
-                    "freelancer", "fulltime" -> years.isNotEmpty()
-                    else -> true // Optional for interns
-                }
-            },
-            errorMessage = "Years of experience is required",
-            isRequired = userType == "freelancer" || userType == "fulltime"
-        )
+
     }
 }
 

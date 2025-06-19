@@ -1,9 +1,13 @@
 package com.example.offer_generator.Screens.HR
 
 import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material.icons.filled.Visibility
@@ -18,12 +23,15 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.PostAdd
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -46,8 +54,8 @@ data class JobDomain(
 
 // Employment types enum
 enum class EmploymentType(val displayName: String) {
-    FREELANCER("freelancer"),
     INTERN("intern"),
+    FREELANCER("freelancer"),
     FULL_TIME("fulltime")
 }
 
@@ -357,61 +365,13 @@ fun JobOpeningsManager(
                     }
                 }
 
-                // Employment Type Toggle Bar
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        EmploymentType.values().forEach { employmentType ->
-                            val isSelected = selectedEmploymentType == employmentType
-                            val employmentTypeColor = when (employmentType) {
-                                EmploymentType.INTERN -> Color(0xFF2196F3)
-                                EmploymentType.FREELANCER -> Color(0xFF9C27B0)
-                                EmploymentType.FULL_TIME -> Color(0xFF4CAF50)
-                            }
-
-                            Button(
-                                onClick = { selectedEmploymentType = employmentType },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isSelected) employmentTypeColor else Color.Transparent,
-                                    contentColor = if (isSelected) Color.White else employmentTypeColor
-                                ),
-                                border = if (!isSelected) BorderStroke(2.dp, employmentTypeColor) else null,
-                                shape = RoundedCornerShape(25.dp)
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = employmentType.displayName,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp
-                                    )
-                                    if (showDetails) {
-                                        Text(
-                                            text = "(${jobViewModel.getTotalForEmploymentType(employmentType)})",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                EnhancedEmploymentTypeSelector(
+                    selectedEmploymentType = selectedEmploymentType,
+                    onEmploymentTypeSelected = { selectedEmploymentType = it },
+                    jobViewModel = jobViewModel,
+                    showDetails = showDetails
+                )
+                Spacer(Modifier.height(16.dp))
 
                 // Enhanced Domain Tabs
                 Card(
@@ -1014,6 +974,148 @@ fun RemoveJobDialog(
                         Text("Remove Role", color = Color.White)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun EnhancedEmploymentTypeSelector(
+    selectedEmploymentType: EmploymentType,
+    onEmploymentTypeSelected: (EmploymentType) -> Unit,
+    jobViewModel: JobOpeningsViewModel, // Assuming you have access to this
+    showDetails: Boolean = true
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(20.dp),
+                ambientColor = Color.Black.copy(alpha = 0.1f)
+            ),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            EmploymentType.values().forEach { employmentType ->
+                val isSelected = selectedEmploymentType == employmentType
+                val totalCount = if (showDetails) {
+                    jobViewModel.getTotalForEmploymentType(employmentType)
+                } else 0
+
+                EnhancedEmploymentTypeTab(
+                    employmentType = employmentType,
+                    isSelected = isSelected,
+                    totalCount = totalCount,
+                    showDetails = showDetails,
+                    onClick = { onEmploymentTypeSelected(employmentType) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun EnhancedEmploymentTypeTab(
+    employmentType: EmploymentType,
+    isSelected: Boolean,
+    totalCount: Int,
+    showDetails: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val employmentTypeColor = when (employmentType) {
+        EmploymentType.INTERN -> Color(0xFF2196F3)
+        EmploymentType.FREELANCER -> Color(0xFF9C27B0)
+        EmploymentType.FULL_TIME -> Color(0xFF4CAF50)
+    }
+
+    val employmentTypeIcon = when (employmentType) {
+        EmploymentType.INTERN -> Icons.Default.School
+        EmploymentType.FREELANCER -> Icons.Default.Person
+        EmploymentType.FULL_TIME -> Icons.Default.Business
+    }
+
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.05f else 1f,
+        animationSpec = tween(durationMillis = 200),
+        label = "scale"
+    )
+
+    val animatedBackgroundColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            employmentTypeColor.copy(alpha = 0.15f)
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 200),
+        label = "backgroundColor"
+    )
+
+    val animatedBorderColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            employmentTypeColor
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 200),
+        label = "borderColor"
+    )
+
+    Surface(
+        modifier = modifier
+            .scale(animatedScale)
+            .clickable { onClick() }
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = animatedBackgroundColor,
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(2.dp, animatedBorderColor)
+        } else null
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp)
+        ) {
+            // Icon with animation
+            Icon(
+                imageVector = employmentTypeIcon,
+                contentDescription = null,
+                tint = if (isSelected) employmentTypeColor else Color.Gray,
+                modifier = Modifier
+                    .size(28.dp)
+                    .scale(if (isSelected) 1.1f else 1f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Employment type name
+            Text(
+                text = employmentType.displayName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) employmentTypeColor else Color.Gray,
+                textAlign = TextAlign.Center
+            )
+
+            // Show count if details are enabled
+            if (showDetails) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "($totalCount)",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) employmentTypeColor.copy(alpha = 0.8f) else Color.Gray.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

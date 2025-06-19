@@ -77,6 +77,44 @@ object InternshipDataManager {
     var totalSubmissions by mutableStateOf(0)
         private set
 
+    init {
+        // Add sample application for testing
+        addSampleApplication()
+    }
+
+    /**
+     * Add a sample application for testing purposes
+     */
+    private fun addSampleApplication() {
+        val sampleApplication = InternshipApplication(
+            id = "sample-001",
+            submissionDate = "15/06/2025 14:30:00",
+            fullName = "Priya Sharma",
+            dateOfBirth = "15/03/2003",
+            yearOfStudy = "3rd Year",
+            college = "Indian Institute of Technology Delhi",
+            branch = "Computer Science Engineering",
+            availableFrom = "01/07/2025",
+            availableUntil = "31/08/2025",
+            internshipRole = "Android Developer",
+            skills = listOf("Kotlin", "Java", "Android Studio", "Firebase", "Git", "Jetpack Compose"),
+            cvFileName = "Priya_Sharma_Resume.pdf",
+            cvUri = null,
+            cvFilePath = "/storage/emulated/0/Documents/Priya_Sharma_Resume.pdf",
+            mobileNumber = "+91 9876543210",
+            email = "priya.sharma@iitd.ac.in",
+            linkedinProfile = "https://linkedin.com/in/priya-sharma-dev",
+            githubLink = "https://github.com/priyasharma-dev",
+            portfolioWebsite = "https://priyasharma.dev",
+            references = "Dr. Rajesh Kumar, Professor, CSE Department, IIT Delhi - rajesh.kumar@iitd.ac.in",
+            personalStatement = "I am a passionate computer science student with strong foundation in mobile app development. I have experience building Android applications using Kotlin and Jetpack Compose. I'm eager to contribute to innovative projects and learn from industry professionals during this internship.",
+            status = ApplicationStatus.SUBMITTED
+        )
+
+        _applications.add(sampleApplication)
+        totalSubmissions++
+    }
+
     /**
      * Submit a new internship application
      */
@@ -197,5 +235,67 @@ object InternshipDataManager {
         _applications.clear()
         totalSubmissions = 0
     }
-}
 
+    /**
+     * Add multiple sample applications for comprehensive testing
+     */
+    fun addMoreSampleApplications() {
+        val sampleApplications = listOf(
+            InternshipApplication(
+                id = "sample-002",
+                submissionDate = "16/06/2025 10:15:00",
+                fullName = "Rahul Gupta",
+                dateOfBirth = "22/08/2002",
+                yearOfStudy = "4th Year",
+                college = "Delhi Technological University",
+                branch = "Information Technology",
+                availableFrom = "20/06/2025",
+                availableUntil = "20/08/2025",
+                internshipRole = "Backend Developer",
+                skills = listOf("Java", "Spring Boot", "MySQL", "REST APIs", "Docker"),
+                cvFileName = "Rahul_Gupta_CV.pdf",
+                cvFilePath = "/storage/emulated/0/Documents/Rahul_Gupta_CV.pdf",
+                mobileNumber = "+91 8765432109",
+                email = "rahul.gupta@dtu.ac.in",
+                linkedinProfile = "https://linkedin.com/in/rahul-gupta-backend",
+                githubLink = "https://github.com/rahulgupta-backend",
+                portfolioWebsite = "https://rahulgupta.tech",
+                references = "Prof. Anita Singh, IT Department, DTU - anita.singh@dtu.ac.in",
+                personalStatement = "Backend development enthusiast with experience in Java and Spring Boot. I have worked on several projects involving REST API development and database management.",
+                status = ApplicationStatus.UNDER_REVIEW,
+                reviewedBy = "HR Team",
+                reviewDate = "17/06/2025 09:30:00",
+                hrComments = "Strong technical background, scheduled for technical interview."
+            ),
+            InternshipApplication(
+                id = "sample-003",
+                submissionDate = "17/06/2025 16:45:00",
+                fullName = "Sneha Patel",
+                dateOfBirth = "10/12/2003",
+                yearOfStudy = "2nd Year",
+                college = "Netaji Subhas University of Technology",
+                branch = "Electronics and Communication",
+                availableFrom = "01/08/2025",
+                availableUntil = "30/09/2025",
+                internshipRole = "UI/UX Designer",
+                skills = listOf("Figma", "Adobe XD", "Sketch", "Prototyping", "User Research"),
+                cvFileName = "Sneha_Patel_Portfolio.pdf",
+                cvFilePath = "/storage/emulated/0/Documents/Sneha_Patel_Portfolio.pdf",
+                mobileNumber = "+91 7654321098",
+                email = "sneha.patel@nsut.ac.in",
+                linkedinProfile = "https://linkedin.com/in/sneha-patel-ux",
+                githubLink = "https://github.com/sneha-design",
+                portfolioWebsite = "https://snehapatel.design",
+                references = "Dr. Meera Sharma, ECE Department, NSUT - meera.sharma@nsut.ac.in",
+                personalStatement = "Creative designer passionate about creating intuitive user experiences. I have designed several mobile app interfaces and conducted user research for various projects.",
+                status = ApplicationStatus.ACCEPTED,
+                reviewedBy = "Design Team Lead",
+                reviewDate = "18/06/2025 11:20:00",
+                hrComments = "Excellent portfolio, great fit for our design team. Offer letter to be generated."
+            )
+        )
+
+        _applications.addAll(sampleApplications)
+        totalSubmissions += sampleApplications.size
+    }
+}

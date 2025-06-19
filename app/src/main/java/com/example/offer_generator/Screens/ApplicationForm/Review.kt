@@ -101,7 +101,6 @@ fun ReviewAndSubmitStep(
             ReviewItem(getSkillsLabel(userType), formData.skillsList.joinToString(", "))
             when(userType){
                 "intern" -> ReviewItem("CV/Resume", formData.cvFileName)
-                "freelancer" -> ReviewItem("Portfolio/Resume", formData.portfolioFileName)
                 "fulltime" -> ReviewItem("Resume", formData.cvFileName)
             }
         }

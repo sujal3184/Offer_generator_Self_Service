@@ -23,16 +23,13 @@ data class FreelancerApplication(
     val projectEndDate: String?, // Optional for freelancers
     val serviceCategory: String,
     val skills: List<String>,
-    val portfolioFileName: String,
-    val portfolioUri: Uri? = null,
-    val portfolioFilePath: String,
+    val portfolioWebsite: String, // Required for freelancers
 
     // Contact Information
     val mobileNumber: String,
     val email: String,
     val linkedinProfile: String, // Required for freelancers
     val githubLink: String, // Required for freelancers
-    val portfolioWebsite: String, // Required for freelancers
     val clientReferences: String, // Optional
     val professionalSummary: String, // Required for freelancers
 
@@ -99,9 +96,6 @@ object FreelancerDataManager {
             projectEndDate = formData.projectEndDate.takeIf { it.isNotEmpty() },
             serviceCategory = formData.serviceCategory, // Using same field as role
             skills = formData.skillsList.toList(),
-            portfolioFileName = formData.portfolioFileName,
-            portfolioUri = formData.portfolioFileUri,
-            portfolioFilePath = formData.portfolioFilePath,
             hourlyRate = formData.hourlyRate,
             mobileNumber = formData.mobileNumber,
             email = formData.email,

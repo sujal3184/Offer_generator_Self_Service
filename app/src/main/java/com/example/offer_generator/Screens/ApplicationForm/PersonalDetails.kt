@@ -3,12 +3,14 @@ package com.example.offer_generator.Screens.ApplicationForm
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
 
@@ -79,11 +81,16 @@ fun PersonalInfoStep(formData: FormData, viewModel: WhoLoginViewModel) {
 
         // Freelancer specific fields
         if (viewModel.getCurrentUserType() == "freelancer") {
-            FormTextField(
-                value = formData.yearsOfExperience,
+            EnhancedFormTextField(
+                value = formData.yearsOfExperience ?: "",
                 onValueChange = { formData.yearsOfExperience = it },
                 label = "Years of Experience *",
-                placeholder = "e.g. 5",
+                placeholder =  "e.g., 2.5",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                validator = { years -> years.isNotEmpty()
+                },
+                errorMessage = "Years of experience is required",
+                isRequired = viewModel.isFreeLancerLoggedIn.value
             )
 
             FormTextField(
@@ -179,11 +186,16 @@ fun PersonalInfoStep(formData: FormData, viewModel: WhoLoginViewModel) {
                 placeholder = "e.g. 8.95 or 95%",
             )
 
-            FormTextField(
-                value = formData.yearsOfExperience,
+            EnhancedFormTextField(
+                value = formData.yearsOfExperience ?: "",
                 onValueChange = { formData.yearsOfExperience = it },
-                label = "Years of Experience (if any)",
-                placeholder = "e.g. 3 (leave blank if fresher)",
+                label = "Years of Experience *",
+                placeholder =  "e.g., 2.5",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                validator = { years -> years.isNotEmpty()
+                },
+                errorMessage = "Years of experience is required",
+                isRequired = viewModel.isFulltimeEmployeeLoggedIn.value
             )
 
             FormTextField(

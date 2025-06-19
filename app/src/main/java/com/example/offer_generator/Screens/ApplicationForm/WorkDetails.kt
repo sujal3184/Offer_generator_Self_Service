@@ -101,11 +101,6 @@ fun WorkDetailsStep(formData: FormData, viewModel: WhoLoginViewModel,jobViewMode
                         formData.cvFilePath = savedPath
                         formData.cvUri = null
                     }
-                    "freelancer" -> {
-                        formData.portfolioFileName = fileName
-                        formData.portfolioFilePath = savedPath
-                        formData.portfolioFileUri = null
-                    }
                     "fulltime" -> {
                         formData.cvFileName = fileName
                         formData.cvFilePath = savedPath
@@ -204,23 +199,6 @@ fun InternFields(
             disablePastDates = true
         )
 
-//        // Duration Preference
-//        OutlinedTextField(
-//            value = formData.internshipDuration ?: "",
-//            onValueChange = { formData.internshipDuration = it },
-//            label = { Text("Preferred Duration") },
-//            placeholder = { Text("e.g., 3 months, 6 months") },
-//            modifier = Modifier.fillMaxWidth(),
-//            shape = RoundedCornerShape(8.dp),
-//            colors = OutlinedTextFieldDefaults.colors(
-//                focusedTextColor = Color.Black,
-//                unfocusedTextColor = Color.Black,
-//                focusedContainerColor = Color.White,
-//                unfocusedContainerColor = Color.White,
-//                focusedBorderColor = Color.Black.copy(alpha = 0.5f),
-//                unfocusedBorderColor = Color.Black.copy(alpha = 0.3f)
-//            )
-//        )
 
         // Available Until Date
         DatePickerField(
@@ -317,21 +295,11 @@ fun FreelancerFields(
 
 
         // Hourly Rate
-        OutlinedTextField(
+        FormTextField(
             value = formData.hourlyRate ?: "",
             onValueChange = { formData.hourlyRate = it },
-            label = { Text("Hourly Rate (₹)") },
-            placeholder = { Text("e.g., 500, 1000") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color.Black.copy(alpha = 0.5f),
-                unfocusedBorderColor = Color.Black.copy(alpha = 0.3f)
-            )
+            label = "Hourly Rate (₹)",
+            placeholder = "e.g., 500, 1000",
         )
 
         // Professional Skills
@@ -343,12 +311,6 @@ fun FreelancerFields(
             userType = userType
         )
 
-        // Upload Portfolio/Resume
-        FileUploadField(
-            fileName = formData.portfolioFileName,
-            onFileSelect = onFileSelect,
-            userType = userType
-        )
     }
 }
 
@@ -393,21 +355,11 @@ fun FullTimeFields(
 
 
         // Expected Salary
-        OutlinedTextField(
+        FormTextField(
             value = formData.expectedSalary ?: "",
             onValueChange = { formData.expectedSalary = it },
-            label = { Text("Expected Annual Salary (₹)") },
-            placeholder = { Text("e.g., 600000, 1200000") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color.Black.copy(alpha = 0.5f),
-                unfocusedBorderColor = Color.Black.copy(alpha = 0.3f)
-            )
+            label = "Expected Annual Salary (₹)",
+            placeholder = "e.g., 600000, 1200000",
         )
 
         // Notice Period

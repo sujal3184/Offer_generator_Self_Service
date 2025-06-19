@@ -79,12 +79,9 @@ fun OfferLetterDetailDialog(
     onDismiss: () -> Unit,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
-    onUploadSigned: (Uri, OfferLetter, (Boolean, OfferLetter?) -> Unit) -> Unit = { _, _, callback -> callback(false, null) }, // Modified callback
-    onViewSigned: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val isGeneratingPdf = remember { mutableStateOf(false) }
-    val isUploadingSigned = remember { mutableStateOf(false) }
 
     // State to hold the current offer (will be updated when document is uploaded)
     var currentOffer by remember { mutableStateOf(offer) }
@@ -92,7 +89,6 @@ fun OfferLetterDetailDialog(
     // Tab state - 0 for Unsigned, 1 for Signed
     val selectedTabIndex = remember { mutableStateOf(0) }
 
-    val scope = rememberCoroutineScope()
 
     // Create a mock GenericApplication from the offer letter for template generation
     val mockApplication = GenericApplication(
@@ -127,29 +123,6 @@ fun OfferLetterDetailDialog(
         generatedBy = currentOffer.generatedBy
     )
 
-    // Helper function to get file info from URI
-    fun getFileInfoFromUri(uri: Uri): Triple<String, Long, String> {
-        val cursor = context.contentResolver.query(uri, null, null, null, null)
-        var fileName = "signed_offer_letter.pdf"
-        var fileSize = 0L
-
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
-
-                if (nameIndex >= 0) {
-                    fileName = it.getString(nameIndex) ?: fileName
-                }
-                if (sizeIndex >= 0) {
-                    fileSize = it.getLong(sizeIndex)
-                }
-            }
-        }
-
-        val currentDate = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
-        return Triple(fileName, fileSize, currentDate)
-    }
 
     // Improved PDF Generation Function
     fun generateAndDownloadPdf() {
@@ -335,7 +308,7 @@ fun OfferLetterDetailDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
+                        .height(80.dp)
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(

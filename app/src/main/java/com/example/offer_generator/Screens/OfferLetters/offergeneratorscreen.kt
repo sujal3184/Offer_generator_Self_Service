@@ -454,103 +454,182 @@ private fun OfferSuccessDialog(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Success",
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(36.dp)
+                    tint = Color(0xFF00C853),
+                    modifier = Modifier.size(32.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "Offer Letter Generated!",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color(0xFF2E7D32)
+                    text = "Offer Letter Generated Successfully",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF1A1A1A),
+                    lineHeight = 24.sp
                 )
             }
         },
         text = {
             Column(
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 4.dp)
             ) {
                 Text(
-                    text = "The offer letter has been successfully generated and sent to the candidate.",
+                    text = "The offer letter has been generated and delivered to the candidate. They will receive a notification and can review the details in their dashboard.",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontSize = 16.sp,
-                        lineHeight = 22.sp
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        letterSpacing = 0.15.sp
                     ),
-                    color = Color(0xFF424242),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    color = Color(0xFF666666),
+                    modifier = Modifier.padding(bottom = 20.dp)
                 )
 
-                // Show offer details if available
+                // Professional offer details card
                 offer?.let {
-                    val typeIcon = when (it.type) {
-                        OfferType.INTERN -> "🎓"
-                        OfferType.FREELANCER -> "💼"
-                        OfferType.FULLTIME -> "🏢"
-                    }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 4.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF5F5F5)
+                            containerColor = Color(0xFFFAFAFA)
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE0E0E0))
                     ) {
                         Column(
-                            modifier = Modifier.padding(12.dp)
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // Header with position and company
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = when (it.type) {
+                                        OfferType.INTERN -> Icons.Default.School
+                                        OfferType.FREELANCER -> Icons.Default.Work
+                                        OfferType.FULLTIME -> Icons.Default.Business
+                                    },
+                                    contentDescription = null,
+                                    tint = Color(0xFF6200EA),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "${it.position}",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF1A1A1A)
+                                )
+                            }
+
                             Text(
-                                text = "$typeIcon ${it.position} at ${it.companyName}",
-                                fontWeight = FontWeight.Medium,
+                                text = it.companyName,
                                 fontSize = 14.sp,
-                                color = Color(0xFF333333)
-                            )
-                            Text(
-                                text = "💰 ${it.salary}",
-                                fontSize = 13.sp,
                                 color = Color(0xFF666666),
-                                modifier = Modifier.padding(top = 2.dp)
+                                modifier = Modifier.padding(start = 26.dp)
                             )
-                            Text(
-                                text = "📅 Valid until: ${it.validUntil}",
-                                fontSize = 12.sp,
-                                color = Color(0xFF888888),
-                                modifier = Modifier.padding(top = 2.dp)
+
+                            Divider(
+                                color = Color(0xFFE5E5E5),
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(vertical = 4.dp)
                             )
+
+                            // Compensation details
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AttachMoney,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4CAF50),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Compensation: ${it.salary}",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF333333),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            // Validity period
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Schedule,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFF9800),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Valid until: ${it.validUntil}",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF333333)
+                                )
+                            }
+
+                            // Offer type badge
+                            Surface(
+                                color = Color(0xFFE3F2FD),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .wrapContentWidth()
+                            ) {
+                                Text(
+                                    text = when (it.type) {
+                                        OfferType.INTERN -> "Internship"
+                                        OfferType.FREELANCER -> "Freelance"
+                                        OfferType.FULLTIME -> "Full-time"
+                                    },
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF1976D2),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
 
                 Text(
-                    text = "The candidate can now view and respond to the offer in their dashboard.",
+                    text = "The candidate will be notified via email and can respond to this offer through their candidate portal.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        letterSpacing = 0.25.sp
                     ),
-                    color = Color(0xFF757575)
+                    color = Color(0xFF999999),
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
         },
         confirmButton = {
-            // Fixed logic: Show View Offers button only if user is NOT HR (candidates can view offers)
             if (!whoLoginViewModel.isHrLoggedIn.value) {
+                // Candidate view - show both buttons
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
                 ) {
                     OutlinedButton(
                         onClick = onViewOffers,
-                        border = BorderStroke(1.dp, colorResource(id = R.color.purple)),
-                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.5.dp, colorResource(id = R.color.purple)),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
-                            .height(44.dp)
-                            .weight(1f)
+                            .height(48.dp)
+                            .weight(1f),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -562,12 +641,13 @@ private fun OfferSuccessDialog(
                                 tint = colorResource(id = R.color.purple),
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "View Offers",
+                                text = "View All Offers",
                                 color = colorResource(id = R.color.purple),
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                letterSpacing = 0.25.sp
                             )
                         }
                     }
@@ -577,14 +657,15 @@ private fun OfferSuccessDialog(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(id = R.color.purple)
                         ),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 4.dp
+                            defaultElevation = 3.dp,
+                            pressedElevation = 6.dp
                         ),
                         modifier = Modifier
-                            .height(44.dp)
-                            .weight(1f)
+                            .height(48.dp)
+                            .weight(1f),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -596,43 +677,46 @@ private fun OfferSuccessDialog(
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Done",
+                                text = "Continue",
                                 color = Color.White,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                letterSpacing = 0.25.sp
                             )
                         }
                     }
                 }
             } else {
-                // Show only a single "OK" button when user is HR
+                // HR view - single button
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = 12.dp)
                 ) {
                     Button(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(id = R.color.purple)
                         ),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(10.dp),
                         elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 4.dp
+                            defaultElevation = 3.dp,
+                            pressedElevation = 6.dp
                         ),
                         modifier = Modifier
-                            .height(44.dp)
-                            .widthIn(min = 120.dp)
+                            .height(48.dp)
+                            .widthIn(min = 140.dp),
+                        contentPadding = PaddingValues(horizontal = 24.dp)
                     ) {
                         Text(
-                            text = "OK",
+                            text = "Close",
                             color = Color.White,
                             fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            letterSpacing = 0.25.sp
                         )
                     }
                 }
@@ -641,8 +725,8 @@ private fun OfferSuccessDialog(
         containerColor = Color.White,
         titleContentColor = Color.Black,
         textContentColor = Color.Black,
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(16.dp)
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.padding(20.dp)
     )
 }
 
@@ -865,8 +949,8 @@ fun OfferGenerationDialog(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
@@ -875,7 +959,7 @@ fun OfferGenerationDialog(
                             val isSelected = selectedTemplate == template
                             Card(
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .weight(1f)
                                     .clickable { selectedTemplate = template },
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) Color(0xFFE0E7FF) else Color(0xFFF8FAFC)
@@ -886,11 +970,11 @@ fun OfferGenerationDialog(
                                 ),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     RadioButton(
                                         selected = isSelected,
@@ -899,24 +983,14 @@ fun OfferGenerationDialog(
                                             selectedColor = Color(0xFF6366F1)
                                         )
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(
-                                            text = template.displayName,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = Color(0xFF374151)
-                                        )
-                                        Text(
-                                            text = when (template) {
-                                                OfferLetterTemplate.FORMAL -> "Traditional business format with formal language"
-                                                OfferLetterTemplate.MODERN -> "Contemporary style with friendly tone"
-                                                OfferLetterTemplate.TECH -> "Developer-friendly with code-style formatting"
-                                            },
-                                            fontSize = 12.sp,
-                                            color = Color(0xFF6B7280)
-                                        )
-                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = template.displayName,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF374151),
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
                             }
                         }
@@ -1339,9 +1413,9 @@ fun OfferGenerationDialog(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Generate Offer",
+                                    text = "Generate",
                                     fontWeight = FontWeight.Medium
                                 )
                             }

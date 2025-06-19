@@ -60,6 +60,7 @@ import com.example.offer_generator.R
 import com.example.offer_generator.Screens.Internship.ApplicationStatistics
 import com.example.offer_generator.Screens.Internship.ApplicationStatus
 import com.example.offer_generator.Screens.Internship.CVViewerDialog
+import com.example.offer_generator.Screens.Internship.DocumentsSection
 import com.example.offer_generator.Screens.Internship.InternshipApplication
 import com.example.offer_generator.Screens.Internship.StatusChip
 import com.example.offer_generator.Screens.Internship.ToggleSection
@@ -478,36 +479,7 @@ fun ApplicationDetailDialog(
                     }
 
                     item {
-                        DetailSection(
-                            title = "Documents",
-                            icon = Icons.Default.PictureAsPdf
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "CV/Resume",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
-                                )
-                                IconButton(
-                                    onClick = { showCVViewer = true },
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(colorResource(id = R.color.purple).copy(alpha = 0.1f))
-                                ) {
-                                    Icon(
-                                        Icons.Default.Visibility,
-                                        contentDescription = "View CV",
-                                        tint = colorResource(id = R.color.purple),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-                        }
+                        DocumentsSection(application)
                     }
 
                     item {
@@ -525,12 +497,7 @@ fun ApplicationDetailDialog(
     }
 
     if (showCVViewer) {
-        CVViewerDialog(
-            cvUri = application.cvUri,
-            cvFileName = application.cvFileName,
-            cvFilePath = application.cvFilePath,
-            onDismiss = { showCVViewer = false }
-        )
+        DocumentsSection(application)
     }
 }
 @Composable

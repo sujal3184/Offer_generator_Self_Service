@@ -460,9 +460,6 @@ fun FreelancerApplicationDetailDialog(
                         ) {
                             DetailRow("Submission Date", application.submissionDate)
                             DetailRow("Skills", application.skills.toString())
-                            DetailRow("Portfolio URL",
-                                (application.portfolioUri ?: "Not provided").toString()
-                            )
                         }
                     }
 
