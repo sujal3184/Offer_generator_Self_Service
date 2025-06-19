@@ -85,89 +85,6 @@ object FreelancerDataManager {
     // Flag to track if sample data has been initialized
     private var sampleDataInitialized = false
 
-    init {
-        initializeSampleData()
-    }
-
-    /**
-     * Initialize sample applications for testing/demo purposes
-     */
-    private fun initializeSampleData() {
-        if (!sampleDataInitialized) {
-            val calendar = Calendar.getInstance()
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-
-            // Sample Application 1 - Mobile App Developer
-            calendar.add(Calendar.DAY_OF_YEAR, -3)
-            val sampleApp1 = FreelancerApplication(
-                id = "sample-001",
-                submissionDate = dateFormat.format(calendar.time),
-                fullName = "Sarah Johnson",
-                dateOfBirth = "15/03/1992",
-                yearsOfExperience = "5",
-                currentLocation = "San Francisco, CA",
-                availabilityStatus = "Available Immediately",
-                projectStartDate = "01/07/2025",
-                projectEndDate = "30/09/2025",
-                serviceCategory = "Mobile App Development",
-                skills = listOf("React Native", "Flutter", "iOS Development", "Android Development", "Firebase", "REST APIs"),
-                portfolioFileName = "sarah_portfolio.pdf",
-                portfolioFilePath = "/storage/portfolios/sarah_portfolio.pdf",
-                mobileNumber = "+1-555-0123",
-                email = "sarah.johnson@email.com",
-                linkedinProfile = "https://linkedin.com/in/sarahjohnson",
-                githubLink = "https://github.com/sarahjohnson",
-                portfolioWebsite = "https://sarahjohnson.dev",
-                clientReferences = "Previous client: TechCorp Inc., Project Manager: Mike Chen, Email: mike@techcorp.com",
-                professionalSummary = "Experienced mobile app developer with 5+ years specializing in cross-platform development. Successfully delivered 15+ mobile applications with focus on user experience and performance optimization.",
-                status = FreelancerApplicationStatus.UNDER_REVIEW,
-                reviewedBy = "HR Manager",
-                reviewDate = dateFormat.format(Date()),
-                hrComments = "Strong portfolio, excellent communication skills. Recommended for technical interview.",
-                hourlyRate = "$75",
-                preferredProjectDuration = "3-6 months",
-                workingTimeZone = "PST (UTC-8)"
-            )
-
-            // Sample Application 2 - Web Developer
-            calendar.add(Calendar.DAY_OF_YEAR, -1)
-            val sampleApp2 = FreelancerApplication(
-                id = "sample-002",
-                submissionDate = dateFormat.format(calendar.time),
-                fullName = "Alex Rodriguez",
-                dateOfBirth = "22/11/1988",
-                yearsOfExperience = "8",
-                currentLocation = "Austin, TX",
-                availabilityStatus = "Available from July 15th",
-                projectStartDate = "15/07/2025",
-                projectEndDate = null,
-                serviceCategory = "Full Stack Web Development",
-                skills = listOf("React", "Node.js", "Python", "Django", "PostgreSQL", "AWS", "Docker", "GraphQL"),
-                portfolioFileName = "alex_portfolio.pdf",
-                portfolioFilePath = "/storage/portfolios/alex_portfolio.pdf",
-                mobileNumber = "+1-555-0456",
-                email = "alex.rodriguez@email.com",
-                linkedinProfile = "https://linkedin.com/in/alexrodriguez",
-                githubLink = "https://github.com/alexrodriguez",
-                portfolioWebsite = "https://alexdev.io",
-                clientReferences = "Previous clients: StartupXYZ (CTO: Jane Smith), E-commerce Solutions Ltd (PM: David Brown)",
-                professionalSummary = "Full-stack developer with 8 years of experience building scalable web applications. Expert in modern JavaScript frameworks and cloud deployment. Led development teams and mentored junior developers.",
-                status = FreelancerApplicationStatus.ACCEPTED,
-                reviewedBy = "Senior HR Specialist",
-                reviewDate = dateFormat.format(Date()),
-                hrComments = "Exceptional candidate with strong technical skills and leadership experience. Approved for immediate hiring.",
-                hourlyRate = "$95",
-                preferredProjectDuration = "6+ months",
-                workingTimeZone = "CST (UTC-6)"
-            )
-
-            _applications.add(sampleApp1)
-            _applications.add(sampleApp2)
-            totalSubmissions = 2
-            sampleDataInitialized = true
-        }
-    }
-
     /**
      * Submit a new freelancer application
      */
@@ -407,7 +324,6 @@ object FreelancerDataManager {
      */
     fun resetToSampleData() {
         clearAllApplications()
-        initializeSampleData()
     }
 
     /**

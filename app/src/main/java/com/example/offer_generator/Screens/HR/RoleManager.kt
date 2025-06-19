@@ -375,8 +375,8 @@ fun JobOpeningsManager(
                         EmploymentType.values().forEach { employmentType ->
                             val isSelected = selectedEmploymentType == employmentType
                             val employmentTypeColor = when (employmentType) {
-                                EmploymentType.FREELANCER -> Color(0xFF9C27B0)
                                 EmploymentType.INTERN -> Color(0xFF2196F3)
+                                EmploymentType.FREELANCER -> Color(0xFF9C27B0)
                                 EmploymentType.FULL_TIME -> Color(0xFF4CAF50)
                             }
 
@@ -398,7 +398,7 @@ fun JobOpeningsManager(
                                     Text(
                                         text = employmentType.displayName,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp
+                                        fontSize = 12.sp
                                     )
                                     if (showDetails) {
                                         Text(

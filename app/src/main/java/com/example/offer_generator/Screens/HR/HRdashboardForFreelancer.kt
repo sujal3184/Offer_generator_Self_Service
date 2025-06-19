@@ -116,7 +116,8 @@ fun FreelancerSectionContent(
                 OfferLettersContent(
                     offerLetters = offerLetters,
                     statistics = offerStatistics,
-                    onViewDetails = onViewOfferDetails
+                    onViewDetails = onViewOfferDetails,
+                    viewModel
                 )
             }
         }
@@ -589,7 +590,7 @@ fun FreelancerAcceptRejectButtons(
                             ) {
                                 AnimatedButton(
                                     onclick = {
-                                        navController.navigate("offer_generator_screen/${application.id}")
+                                        navController.navigate("offer_generator_screen/${application.id}/freelancer")
                                         onDismiss()
                                     },
                                     text = "Generate Offer Letter",

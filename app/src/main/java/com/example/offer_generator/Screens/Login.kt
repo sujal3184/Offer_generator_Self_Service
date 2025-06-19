@@ -1,5 +1,6 @@
 package com.example.offer_generator.Screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -19,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,6 +45,7 @@ fun Login(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
     val drawerState = rememberDrawerState(
         initialValue = if (isDrawerOpen) DrawerValue.Open else DrawerValue.Closed
     )
+    val context = LocalContext.current
 
     // Update drawer state when isDrawerOpen changes
     LaunchedEffect(isDrawerOpen) {
@@ -287,13 +290,29 @@ fun Login(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
                             // Submit Button
                             AnimatedButton(
                                 onclick = {
-                                    if(email.contains("hr")){
-                                        navController.navigate(Screen.HrDashboard.route)
-                                    }
-                                    else{
-                                        navController.navigate(Screen.CandidateDashboard.route)
-                                    }
+                                    if(whoLoginViewModel.selectedRole.value=="hr"){
+                                        if(!email.contains("hr")){
+                                            Toast.makeText(context, "Enter valid email for HR", Toast.LENGTH_SHORT).show()
+                                        }
+                                        else {
+                                            // Set the user as logged in with their previously selected role
+                                            whoLoginViewModel.loginWithSelectedRole()
 
+                                            // Navigate to home screen
+                                            navController.navigate(Screen.HomeScreen.route) {
+                                                popUpTo(Screen.LoginScreen.route) { inclusive = true }
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        // Set the user as logged in with their previously selected role
+                                        whoLoginViewModel.loginWithSelectedRole()
+
+                                        // Navigate to home screen
+                                        navController.navigate(Screen.HomeScreen.route) {
+                                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
+                                        }
+                                    }
                                           },
                                 text = "Login", filled = true, delay = 500)
 

@@ -200,7 +200,8 @@ fun EnhancedApplicationsListScreen(navController: NavController,viewmodel: WhoLo
                     statistics = offerstatistics,
                     onViewDetails = { offer ->
                         selectedOffer = offer
-                    }
+                    },
+                    viewmodel
                 )
             }
         }

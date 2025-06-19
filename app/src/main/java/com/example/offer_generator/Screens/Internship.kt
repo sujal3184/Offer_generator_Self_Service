@@ -103,7 +103,7 @@ fun getScreenTitleAndDescription(whoLoginViewModel: WhoLoginViewModel): Pair<Str
             "Kickstart your career with hands-on experience and mentorship from industry experts. Our internships are designed to help you grow professionally and personally."
         )
         whoLoginViewModel.isFulltimeEmployeeLoggedIn.value -> Pair(
-            "Full-Time Career Opportunities",
+            "Career Opportunities",
             "Join our team as a full-time employee and build a long-term career with comprehensive benefits and growth opportunities."
         )
         else -> Pair(
@@ -615,14 +615,10 @@ fun AvailableJobRoles(
 
                                 AnimatedButton(
                                     onclick = {
-                                        if(whoLoginViewModel.isUserLoggedIn.value) {
                                             when {
                                                 whoLoginViewModel.isHrLoggedIn.value -> navController.navigate(Screen.HrDashboard.route)
                                                 else -> navController.navigate(Screen.ApplicationForm.route)
                                             }
-                                        } else {
-                                            navController.navigate(Screen.LoginScreen.route)
-                                        }
                                     },
                                     text = if (whoLoginViewModel.isHrLoggedIn.value) "Manage Openings" else "Apply Now",
                                     delay = 300,

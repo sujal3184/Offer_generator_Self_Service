@@ -115,7 +115,8 @@ fun InternSectionContent(
                 OfferLettersContent(
                     offerLetters = offerLetters,
                     statistics = offerStatistics,
-                    onViewDetails = onViewOfferDetails
+                    onViewDetails = onViewOfferDetails,
+                    viewModel
                 )
             }
         }
@@ -581,7 +582,9 @@ fun InternAcceptRejectButtons(
                             horizontalArrangement = Arrangement.Center
                         ) {
 
-                            AnimatedButton(onclick = {navController.navigate("offer_generator_screen/${application.id}")},
+                            AnimatedButton(onclick = {
+                                navController.navigate("offer_generator_screen/${application.id}/internship")
+                                                     onDismiss()},
                                 text = "Generate Offer Letter", delay = 300, filled = true)
                         }
                     }

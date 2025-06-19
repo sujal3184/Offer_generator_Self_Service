@@ -68,10 +68,18 @@ fun Navigation(navController: NavHostController = rememberNavController()){
         }
 
         composable(
-            route = "offer_generator_screen/{applicationId}",
-            arguments = listOf(navArgument("applicationId") { type = NavType.StringType })
+            route = "offer_generator_screen/{applicationId}/{applicationType}",
+            arguments = listOf(
+                navArgument("applicationId") { type = NavType.StringType },
+                navArgument("applicationType") { type = NavType.StringType }
+            )
         ) {
-            OfferLetterGenerator(navController, whoLoginViewModel, it.arguments?.getString("applicationId"),"freelancer")
+            OfferLetterGenerator(
+                navController,
+                whoLoginViewModel,
+                it.arguments?.getString("applicationId"),
+                it.arguments?.getString("applicationType")
+            )
         }
 
 //       Freelancer

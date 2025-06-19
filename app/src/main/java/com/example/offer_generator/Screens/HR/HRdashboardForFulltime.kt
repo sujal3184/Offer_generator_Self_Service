@@ -119,7 +119,8 @@ fun FulltimeSectionContent(
                 OfferLettersContent(
                     offerLetters = offerLetters,
                     statistics = offerStatistics,
-                    onViewDetails = onViewOfferDetails
+                    onViewDetails = onViewOfferDetails,
+                    viewModel
                 )
             }
         }
@@ -610,7 +611,7 @@ fun FulltimeAcceptRejectButtons(
                             horizontalArrangement = Arrangement.Center
                         ) {
 
-                            AnimatedButton(onclick = {navController.navigate("offer_generator_screen/${application.id}")},
+                            AnimatedButton(onclick = {navController.navigate("offer_generator_screen/${application.id},fulltime")},
                                 text = "Generate Offer Letter", delay = 300, filled = true)
                         }
                     }

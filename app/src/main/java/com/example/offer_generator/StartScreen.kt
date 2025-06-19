@@ -129,6 +129,8 @@ data class UserRole(
     val gradientColors: List<Color>
 )
 
+// Update the StartScreen composable - only change the updateViewModelForRole function and the onContinue callback
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartScreen(
@@ -196,19 +198,11 @@ fun StartScreen(
         )
     )
 
-    // Function to update ViewModel based on selected role
+    // Updated function to only set selected role in ViewModel, not login state
     fun updateViewModelForRole(roleId: String) {
-        // Reset all login states first
-        viewModel.logoutAll()
-
-        // Set the appropriate role to true
-        when (roleId) {
-            "intern" -> viewModel.setUserLoggedIn(true)
-            "fulltime" -> viewModel.setFulltimeEmployeeLoggedIn(true)
-            "freelancer" -> viewModel.setFreeLancerLoggedIn(true)
-            "hr" -> viewModel.setHrLoggedIn(true)
-            "admin" -> viewModel.setAdminLoggedIn(true)
-        }
+        // Only set the selected role, don't set any login states
+        viewModel.setSelectedRole(roleId)
+        // Navigate to home screen where user will see info and login button
         navController.navigate(Screen.HomeScreen.route)
     }
 
@@ -380,9 +374,9 @@ fun StartScreen(
                         selectedRole = selectedRole,
                         onContinue = {
                             selectedRole?.let { roleId ->
-                                // Update ViewModel first
+                                // Update ViewModel with selected role (not login state)
                                 updateViewModelForRole(roleId)
-                                // Then call the original callback
+                                // Call the original callback
                                 onRoleSelected(roleId)
                             }
                         },

@@ -53,15 +53,12 @@ import com.example.offer_generator.common.FloatingCard
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
-import com.example.offer_generator.Screens.HR.JobOpeningsManager
-import com.example.offer_generator.Screens.HR.JobOpeningsRepository
 import com.example.offer_generator.common.bottomBar
 import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(navController: NavController, whoLoginViewModel: WhoLoginViewModel) {
 
-    val repository = remember { JobOpeningsRepository() }
 
     // Animation states
     var isVisible by remember { mutableStateOf(false) }
@@ -105,6 +102,8 @@ fun HomeScreen(navController: NavController, whoLoginViewModel: WhoLoginViewMode
     }
 }
 
+// Replace your existing HomeScreenContent function with this fixed version:
+
 @Composable
 private fun HomeScreenContent(
     navController: NavController,
@@ -127,6 +126,7 @@ private fun HomeScreenContent(
 
     // Determine user role - you may need to adjust these based on your actual user role logic
     val userRole = getUserRole(whoLoginViewModel)
+    val isActuallyLoggedIn = whoLoginViewModel.isAnyUserLoggedIn()
 
     Column(
         modifier = Modifier
@@ -198,27 +198,16 @@ private fun HomeScreenContent(
                 } else {
                     AnimatedInteractiveButton(
                         onclick = { navController.navigate(Screen.LoginScreen.route) },
-                        text = "    Login    ",
+                        text = "    Login and Get Started   ",
                         filled = true
-                    )
-
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                    AnimatedInteractiveButton(
-                        onclick = { navController.navigate(Screen.LoginScreen.route) },
-                        text = "  Get Started  ",
-                        filled = false
                     )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(44.dp))
-
-        // Role-specific content for guests
-        if (userRole == "GUEST") {
-            GuestContent(navController, showContent)
-        }
+        Divider()
+        Spacer(modifier = Modifier.height(44.dp))
 
         // Role-specific features card
         AnimatedVisibility(
@@ -255,32 +244,150 @@ private fun HomeScreenContent(
         Divider()
         Spacer(modifier = Modifier.height(50.dp))
 
-        // Role-specific quick actions
-        when (userRole) {
-            "FREELANCER" -> FreelancerQuickActions(navController, showContent)
-            "INTERN" -> InternQuickActions(navController, showContent)
-            "JOB_SEEKER" -> JobSeekerQuickActions(navController, showContent)
-            "HR" -> HRQuickActions(navController, showContent)
-        }
+        // FIXED: Conditional rendering to prevent overlap
+        if (isActuallyLoggedIn) {
+            // Show role-specific quick actions for logged-in users
+            when (userRole) {
+                "FREELANCER" -> FreelancerQuickActions(navController, showContent)
+                "INTERN" -> InternQuickActions(navController, showContent)
+                "JOB_SEEKER" -> JobSeekerQuickActions(navController, showContent)
+                "HR" -> HRQuickActions(navController, showContent)
+            }
 
-        // Role-specific domain opportunities
-        if (userRole != "GUEST") {
+            // Show domains section for logged-in users
             RoleSpecificDomains(userRole, showContent)
+
+        } else {
+            // Show guest content for non-logged-in users
+            AnimatedVisibility(
+                visible = showContent,
+                enter = fadeIn(animationSpec = tween(1500))
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (whoLoginViewModel.selectedRole.value != null) {
+                        // Show message for guest users who selected a role but haven't logged in
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = colorResource(id = R.color.white)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Ready to Get Started?",
+                                    style = MaterialTheme.typography.h5,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Text(
+                                    text = "Login or Sign up to access your personalized dashboard and start your journey with us!",
+                                    style = MaterialTheme.typography.body1,
+                                    color = Color.Gray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                AnimatedInteractiveButton(
+                                    onclick = { navController.navigate(Screen.LoginScreen.route) },
+                                    text = "Login to Continue",
+                                    filled = true
+                                )
+                            }
+                        }
+                    } else {
+                        // Show general welcome message for complete guests
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = colorResource(id = R.color.white)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Welcome to Lokachakra!",
+                                    style = MaterialTheme.typography.h5,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Text(
+                                    text = "Join our community of professionals and discover amazing opportunities tailored for you.",
+                                    style = MaterialTheme.typography.body1,
+                                    color = Color.Gray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                AnimatedInteractiveButton(
+                                    onclick = { navController.navigate(Screen.LoginScreen.route) },
+                                    text = "Get Started",
+                                    filled = true
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // OPTIONAL: You can also show domains for guest users after login card
+            // Uncomment the lines below if you want to show domains to guest users too
+            /*
+            Spacer(modifier = Modifier.height(32.dp))
+            RoleSpecificDomains(userRole, showContent)
+            */
         }
 
         bottomBar(navController, whoLoginViewModel)
     }
 }
-
 // Helper function to get user role - updated implementation
 @Composable
 private fun getUserRole(whoLoginViewModel: WhoLoginViewModel): String {
     return when {
         whoLoginViewModel.isFreeLancerLoggedIn.value -> "FREELANCER"
-        whoLoginViewModel.isUserLoggedIn.value -> "INTERN" // assuming isUserLoggedIn represents intern
+        whoLoginViewModel.isUserLoggedIn.value -> "INTERN"
         whoLoginViewModel.isFulltimeEmployeeLoggedIn.value -> "JOB_SEEKER"
         whoLoginViewModel.isHrLoggedIn.value -> "HR"
-        whoLoginViewModel.isAdminLoggedIn.value -> "ADMIN" // if you want to handle admin separately
+        whoLoginViewModel.isAdminLoggedIn.value -> "ADMIN"
+        // Handle guest role selection
+        whoLoginViewModel.selectedRole.value != null -> {
+            when(whoLoginViewModel.selectedRole.value) {
+                "freelancer" -> "FREELANCER"
+                "intern" -> "INTERN"
+                "fulltime" -> "JOB_SEEKER"
+                "hr" -> "HR"
+                "admin" -> "ADMIN"
+                else -> "GUEST"
+            }
+        }
         else -> "GUEST"
     }
 }
@@ -673,75 +780,6 @@ data class QuickAction(
     val icon: String
 )
 
-// Updated Role Cards for Guest Content
-private fun getGuestRoleCards(): List<RoleCardData> = listOf(
-    RoleCardData(
-        title = "🎓 Launch Your Career with Internships",
-        description = "Transform theoretical knowledge into practical skills through hands-on internship experiences. Work alongside industry professionals, contribute to real projects, and build a strong foundation for your career journey.",
-        features = listOf(
-            "3-6 month structured programs with clear learning objectives",
-            "Direct mentorship from experienced professionals and team leads",
-            "Real-world projects that add value to your portfolio",
-            "Completion certificates and professional LinkedIn recommendations",
-            "Networking opportunities with industry professionals",
-            "Potential conversion to full-time positions (70% success rate)"
-        ),
-        buttonText = "Apply for Internships",
-        primaryColor = "#4CAF50"
-    ),
-    RoleCardData(
-        title = "💼 Freelance Your Way to Success",
-        description = "Build a thriving independent career with diverse freelance projects. Enjoy complete flexibility while working with verified clients on challenging projects that expand your skills and portfolio.",
-        features = listOf(
-            "Project-based work with flexible schedules and remote options",
-            "Competitive rates with secure milestone-based payment systems",
-            "Work with verified clients from startups to Fortune 500 companies",
-            "Build long-term partnerships and recurring project opportunities",
-            "Access to premium projects across technology, design, and business",
-            "Professional portfolio building and client testimonial system"
-        ),
-        buttonText = "Browse Freelance Projects",
-        primaryColor = "#2196F3"
-    ),
-    RoleCardData(
-        title = "🚀 Build Your Dream Career",
-        description = "Secure permanent positions that offer stability, growth, and comprehensive benefits. Join innovative companies that invest in your professional development and long-term career success.",
-        features = listOf(
-            "Full-time permanent positions with job security and stability",
-            "Comprehensive benefits including health, dental, and retirement plans",
-            "Clear career progression pathways with skills development support",
-            "Work-life balance with flexible schedules and remote work options",
-            "Professional development budgets and conference attendance",
-            "Team collaboration opportunities and leadership development"
-        ),
-        buttonText = "Explore Career Opportunities",
-        primaryColor = "#FF9800"
-    ),
-    RoleCardData(
-        title = "🏢 Hire Exceptional Talent",
-        description = "Transform your hiring process and build world-class teams. Access a curated pool of pre-vetted professionals across all skill levels and engagement types to drive your business forward.",
-        features = listOf(
-            "Access to pre-screened talent pool with verified skills and experience",
-            "Flexible hiring models: full-time, contract, freelance, and internship",
-            "AI-powered matching system for precise candidate recommendations",
-            "Streamlined interview process with integrated scheduling and feedback",
-            "Detailed candidate analytics and cultural fit assessments",
-            "Ongoing support for successful team integration and retention"
-        ),
-        buttonText = "Start Hiring Today",
-        primaryColor = "#9C27B0"
-    )
-)
-
-// Data class for Role Cards
-data class RoleCardData(
-    val title: String,
-    val description: String,
-    val features: List<String>,
-    val buttonText: String,
-    val primaryColor: String
-)
-
 // Replace your existing functions with these updated versions:
 
 private fun getRoleSpecificSubtitle(userRole: String): String {
@@ -824,7 +862,7 @@ private fun FreelancerQuickActions(navController: NavController, showContent: Bo
                             "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
                             "View Proposals" -> navController.navigate(Screen.FlDashboard.route)
                             "View Projects" -> navController.navigate(Screen.AvailableJobRoles.route)
-                            else -> navController.navigate(Screen.ApplicationForm.route)
+                            else -> navController.navigate(Screen.FlDashboard.route)
                         }
                     }
                 )
@@ -867,7 +905,7 @@ private fun InternQuickActions(navController: NavController, showContent: Boolea
                             "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
                             "View Status" -> navController.navigate(Screen.CandidateDashboard.route)
                             "View Roles" -> navController.navigate(Screen.AvailableJobRoles.route)
-                            else -> navController.navigate(Screen.ApplicationForm.route)
+                            else -> navController.navigate(Screen.CandidateDashboard.route)
                         }
                     }
                 )
@@ -910,7 +948,7 @@ private fun JobSeekerQuickActions(navController: NavController, showContent: Boo
                             "Apply Now" -> navController.navigate(Screen.ApplicationForm.route)
                             "Track Progress" -> navController.navigate(Screen.FullTimejobDashboard.route)
                             "Browse Jobs" -> navController.navigate(Screen.AvailableJobRoles.route)
-                            else -> navController.navigate(Screen.ApplicationForm.route)
+                            else -> navController.navigate(Screen.FullTimejobDashboard.route)
                         }
                     }
                 )
@@ -963,38 +1001,6 @@ private fun HRQuickActions(navController: NavController, showContent: Boolean) {
             Spacer(modifier = Modifier.height(15.dp))
             Divider()
             Spacer(modifier = Modifier.height(50.dp))
-        }
-    }
-}
-
-// Updated GuestContent function
-@Composable
-private fun GuestContent(navController: NavController, showContent: Boolean) {
-    AnimatedVisibility(
-        visible = showContent,
-        enter = fadeIn(animationSpec = tween(1200))
-    ) {
-        Column {
-            Text(
-                text = "Choose Your Career Path",
-                style = MaterialTheme.typography.h5,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                fontSize = 28.sp
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            getGuestRoleCards().forEach { roleCard ->
-                EnhancedRoleCard(
-                    title = roleCard.title,
-                    description = roleCard.description,
-                    features = roleCard.features,
-                    buttonText = roleCard.buttonText,
-                    onClick = { navController.navigate(Screen.LoginScreen.route) }
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
         }
     }
 }

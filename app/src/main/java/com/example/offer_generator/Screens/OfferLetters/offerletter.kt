@@ -3,6 +3,7 @@ package com.example.offer_generator.Screens.OfferLetters
 // Add these imports to your file
 import OfferLetter
 import OfferLetterStats
+import OfferType
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +45,13 @@ import com.example.offer_generator.ViewModels.WhoLoginViewModel
 fun OfferLettersContent(
     offerLetters: List<OfferLetter>,
     statistics: OfferLetterStats,
-    onViewDetails: (OfferLetter) -> Unit
+    onViewDetails: (OfferLetter) -> Unit,
+    viewModel: WhoLoginViewModel
 ) {
+    // Filter offer letters based on user role
+    val filteredOfferLetters = filterOfferLettersByUserRole(offerLetters, viewModel)
+    val filteredStatistics = calculateFilteredStatistics(filteredOfferLetters)
+
     // Statistics Cards for Offers
     Text(
         "Offer Letters Overview",
@@ -59,9 +65,9 @@ fun OfferLettersContent(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        EnhancedStatCard("Total", statistics.totalOffers.toString(), Icons.Default.Mail, Color(0xFF2196F3))
-        EnhancedStatCard("Accepted", statistics.acceptedOffers.toString(), Icons.Default.CheckCircle, Color(0xFF4CAF50))
-        EnhancedStatCard("Pending", statistics.pendingOffers.toString(), Icons.Default.Schedule, Color(0xFFFF9500))
+        EnhancedStatCard("Total", filteredStatistics.totalOffers.toString(), Icons.Default.Mail, Color(0xFF2196F3))
+        EnhancedStatCard("Accepted", filteredStatistics.acceptedOffers.toString(), Icons.Default.CheckCircle, Color(0xFF4CAF50))
+        EnhancedStatCard("Pending", filteredStatistics.pendingOffers.toString(), Icons.Default.Schedule, Color(0xFFFF9500))
     }
 
     Spacer(modifier = Modifier.height(32.dp))
@@ -93,7 +99,7 @@ fun OfferLettersContent(
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                "${offerLetters.size} Offers",
+                "${filteredOfferLetters.size} Offers",
                 style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
@@ -151,13 +157,46 @@ fun OfferLettersContent(
     Spacer(modifier = Modifier.height(8.dp))
 
     // Offer Letters List
-    offerLetters.forEach { offer ->
+    filteredOfferLetters.forEach { offer ->
         EnhancedOfferCard(
             offer = offer,
             onViewDetails = onViewDetails
         )
         Spacer(modifier = Modifier.height(12.dp))
     }
+}
+
+// Helper function to filter offer letters based on user role
+fun filterOfferLettersByUserRole(
+    offerLetters: List<OfferLetter>,
+    viewModel: WhoLoginViewModel
+): List<OfferLetter> {
+    val currentUserType = viewModel.getCurrentUserType() ?: viewModel.selectedRole.value
+
+    return when (currentUserType) {
+        "intern" -> offerLetters.filter { it.type == OfferType.INTERN }
+        "freelancer" -> offerLetters.filter { it.type == OfferType.FREELANCER }
+        "fulltime" -> offerLetters.filter { it.type == OfferType.FULLTIME }
+        "hr" -> offerLetters // HR can see all offer letters
+        "admin" -> offerLetters // Admin can see all offer letters
+        else -> emptyList() // Unknown role gets no offers
+    }
+}
+
+// Helper function to calculate statistics for filtered offers
+fun calculateFilteredStatistics(filteredOfferLetters: List<OfferLetter>): OfferLetterStats {
+    return OfferLetterStats(
+        totalOffers = filteredOfferLetters.size,
+        pendingOffers = filteredOfferLetters.count { it.status.toString().lowercase() == "pending" },
+        acceptedOffers = filteredOfferLetters.count { it.status.toString().lowercase() == "accepted" },
+        rejectedOffers = filteredOfferLetters.count { it.status.toString().lowercase() == "rejected" },
+        expiredOffers = filteredOfferLetters.count { it.status.toString().lowercase() == "expired" },
+        withdrawnOffers = filteredOfferLetters.count { it.status.toString().lowercase() == "withdrawn" },
+        signedOffers = filteredOfferLetters.count { it.isSigned },
+        internOffers = filteredOfferLetters.count { it.type == OfferType.INTERN },
+        freelancerOffers = filteredOfferLetters.count { it.type == OfferType.FREELANCER },
+        fulltimeOffers = filteredOfferLetters.count { it.type == OfferType.FULLTIME }
+    )
 }
 
 @Composable
@@ -244,7 +283,7 @@ fun OfferStatusChip(status: String) {
     val (backgroundColor, textColor) = when (status.lowercase()) {
         "accepted" -> Color(0xFF4CAF50) to Color.White
         "pending" -> Color(0xFFFF9500) to Color.White
-        "declined" -> Color(0xFFF44336) to Color.White
+        "declined", "rejected" -> Color(0xFFF44336) to Color.White
         else -> Color.Gray to Color.White
     }
 
@@ -305,10 +344,5 @@ fun NoOfferLetters(viewModel: WhoLoginViewModel) {
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-
     }
 }
-
-
-
-
