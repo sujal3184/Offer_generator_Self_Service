@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(Unit) {
                         if (!splashShown) {
-                            delay(1000) // 1 second splash screen
+                            delay(3000) // 3 second splash screen
                             showSplash = false
                             splashShown = true
                         }

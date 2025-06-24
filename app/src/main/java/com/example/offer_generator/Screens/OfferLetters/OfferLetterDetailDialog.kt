@@ -109,7 +109,7 @@ fun OfferLetterDetailDialog(
 
     // Generate the full offer letter content using the formal template
     val fullOfferContent = OfferTemplateGenerator.generateOfferContent(
-        template = OfferLetterTemplate.FORMAL,
+        template = currentOffer.templateType, // Use the selected template
         application = mockApplication,
         companyName = currentOffer.companyName,
         position = currentOffer.position,
@@ -120,7 +120,9 @@ fun OfferLetterDetailDialog(
         benefits = currentOffer.benefits,
         terms = currentOffer.terms,
         validUntil = currentOffer.validUntil,
-        generatedBy = currentOffer.generatedBy
+        generatedBy = currentOffer.generatedBy,
+        customTemplateId = currentOffer.customTemplateId, // Pass custom template ID
+        customTemplateContent = currentOffer.customTemplateContent  // Pass custom template content
     )
 
 
@@ -342,11 +344,6 @@ fun OfferLetterDetailDialog(
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
-                            )
-                            Text(
-                                text = "${currentOffer.position} • ${currentOffer.companyName}",
-                                fontSize = 14.sp,
-                                color = Color.White.copy(alpha = 0.9f)
                             )
                         }
 
@@ -724,7 +721,7 @@ fun OfferLetterDetailDialog(
 
                     1 -> {
                         // Signed Offer Letter
-                        SignedOfferLetterScreen(viewModel,onDismiss)
+                        SignedOfferLetterScreen(viewModel,currentOffer,onDismiss)
                     }
                 }
             }

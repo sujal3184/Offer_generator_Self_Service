@@ -81,6 +81,44 @@ object FreelancerDataManager {
 
     // Flag to track if sample data has been initialized
     private var sampleDataInitialized = false
+init{
+    initializeSampleData()
+}
+    /**
+     * Initialize with sample data if not already done
+     */
+    fun initializeSampleData() {
+        if (!sampleDataInitialized) {
+            val sampleApplication = FreelancerApplication(
+                id = "sample-001",
+                submissionDate = "15/06/2025 14:30:00",
+                fullName = "Sarah Johnson",
+                dateOfBirth = "15/03/1990",
+                yearsOfExperience = "5.5",
+                currentLocation = "San Francisco, CA",
+                availabilityStatus = "Available Immediately",
+                projectStartDate = "01/07/2025",
+                projectEndDate = "01/10/2025",
+                serviceCategory = "Mobile App Development",
+                skills = listOf("Android", "Kotlin", "Jetpack Compose", "MVVM", "REST APIs", "Firebase"),
+                portfolioWebsite = "https://sarahjohnson.dev",
+                mobileNumber = "+1-555-0123",
+                email = "sarah.johnson@example.com",
+                linkedinProfile = "https://linkedin.com/in/sarahjohnson",
+                githubLink = "https://github.com/sarahjohnson",
+                clientReferences = "Available upon request - worked with TechCorp, InnovateLab, StartupXYZ",
+                professionalSummary = "Experienced Android developer with 5+ years of expertise in building scalable mobile applications. Specialized in Kotlin and Jetpack Compose with a strong background in clean architecture patterns. Successfully delivered 15+ projects for startups and enterprise clients.",
+                status = FreelancerApplicationStatus.SUBMITTED,
+                hourlyRate = "$75",
+                preferredProjectDuration = "3-6 months",
+                workingTimeZone = "PST (UTC-8)"
+            )
+
+            _applications.add(sampleApplication)
+            totalSubmissions++
+            sampleDataInitialized = true
+        }
+    }
 
     /**
      * Submit a new freelancer application
@@ -318,6 +356,7 @@ object FreelancerDataManager {
      */
     fun resetToSampleData() {
         clearAllApplications()
+        initializeSampleData()
     }
 
     /**

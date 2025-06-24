@@ -251,7 +251,7 @@ fun JobOpeningsManager(
     jobViewModel: JobOpeningsViewModel
 ) {
     var selectedTab by remember { mutableStateOf("technical") }
-    var selectedEmploymentType by remember { mutableStateOf(EmploymentType.FULL_TIME) }
+    var selectedEmploymentType by remember { mutableStateOf(EmploymentType.INTERN) }
     var showDetails by remember { mutableStateOf(false) }
     var showAddJobDialog by remember { mutableStateOf(false) }
     var showRemoveJobDialog by remember { mutableStateOf(false) }

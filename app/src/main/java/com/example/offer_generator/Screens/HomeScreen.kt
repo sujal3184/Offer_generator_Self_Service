@@ -264,7 +264,7 @@ private fun HomeScreenContent(
                 enter = fadeIn(animationSpec = tween(1500))
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (whoLoginViewModel.selectedRole.value != null) {
@@ -272,7 +272,7 @@ private fun HomeScreenContent(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = colorResource(id = R.color.white)
@@ -284,7 +284,7 @@ private fun HomeScreenContent(
                                     .fillMaxWidth()
                                     .padding(24.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
+                            ){
                                 Text(
                                     text = "Ready to Get Started?",
                                     style = MaterialTheme.typography.h5,

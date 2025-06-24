@@ -659,9 +659,7 @@ fun ApplicationDetailDialog(
                             DetailRow("Email", application.email)
                             DetailRow("LinkedIn", application.linkedinProfile)
                             DetailRow("GitHub", application.githubLink)
-                            if (application.portfolioWebsite.isNotEmpty()) {
-                                DetailRow("Portfolio", application.portfolioWebsite)
-                            }
+                            DetailRow("Portfolio", application.portfolioWebsite)
                             DetailRow("Client References", application.clientReferences)
                             DetailRow("Professional Summary", application.professionalSummary)
                         }

@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -57,6 +58,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
+import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatus
 import com.example.offer_generator.Screens.Internship.ApplicationStatistics
 import com.example.offer_generator.Screens.Internship.ApplicationStatus
 import com.example.offer_generator.Screens.Internship.CVViewerDialog
@@ -422,64 +424,121 @@ fun ApplicationDetailDialog(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     item {
-                        DetailSection(
+                        com.example.offer_generator.Screens.Internship.DetailSection(
                             title = "Personal Information",
                             icon = Icons.Default.Person
                         ) {
-                            DetailRow("Full Name", application.fullName)
-                            DetailRow("Date of Birth", application.dateOfBirth)
-//                            DetailRow("Education Level", application.educationLevel)
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Full Name",
+                                application.fullName
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Date of Birth",
+                                application.dateOfBirth
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Year of Study",
+                                application.yearOfStudy
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "College",
+                                application.college
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Branch",
+                                application.branch
+                            )
                         }
                     }
 
                     item {
-                        DetailSection(
-                            title = "Application Details",
+                        com.example.offer_generator.Screens.Internship.DetailSection(
+                            title = "Internship Details",
                             icon = Icons.Default.Work
                         ) {
-                            DetailRow("Role", application.internshipRole)
-//                            DetailRow("Department", application.department)
-//                            DetailRow("Duration", application.duration)
-                            DetailRow("Status", application.status.name)
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Role",
+                                application.internshipRole
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Available From",
+                                application.availableFrom
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Available Until",
+                                application.availableUntil
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Status",
+                                application.status.name.replace("_", " ")
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Submission Date",
+                                application.submissionDate
+                            )
                         }
                     }
 
                     item {
-                        DetailSection(
+                        com.example.offer_generator.Screens.Internship.DetailSection(
+                            title = "Skills",
+                            icon = Icons.Default.Star
+                        ) {
+                            Text(
+                                application.skills.joinToString(", "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                    }
+
+                    item {
+                        com.example.offer_generator.Screens.Internship.DetailSection(
                             title = "Contact Information",
                             icon = Icons.Default.Phone
                         ) {
-                            DetailRow("Email", application.email)
-                            DetailRow("Phone", application.mobileNumber)
-//                            DetailRow("Address", application.address)
-                        }
-                    }
-
-                    item {
-                        DetailSection(
-                            title = "Academic Information",
-                            icon = Icons.Default.Star
-                        ) {
-                            DetailRow("Institution", application.college)
-                            DetailRow("Field of Study", application.branch)
-//                            DetailRow("GPA", application.gpa.toString())
-//                            DetailRow("Graduation Year", application.graduationYear.toString())
-                        }
-                    }
-
-                    item {
-                        DetailSection(
-                            title = "Application Info",
-                            icon = Icons.Default.Description
-                        ) {
-                            DetailRow("Submission Date", application.submissionDate)
-                            DetailRow("Skills", application.skills.toString())
-//                            DetailRow("Motivation", application.motivation)
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Mobile",
+                                application.mobileNumber
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "Email",
+                                application.email
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "LinkedIn",
+                                application.linkedinProfile
+                            )
+                            com.example.offer_generator.Screens.Internship.DetailRow(
+                                "GitHub",
+                                application.githubLink
+                            )
+                            if (application.portfolioWebsite.isNotEmpty()) {
+                                com.example.offer_generator.Screens.Internship.DetailRow(
+                                    "Portfolio",
+                                    application.portfolioWebsite
+                                )
+                            }
                         }
                     }
 
                     item {
                         DocumentsSection(application)
+                    }
+
+                    if (application.personalStatement.isNotEmpty()) {
+                        item {
+                            com.example.offer_generator.Screens.Internship.DetailSection(
+                                title = "Personal Statement",
+                                icon = Icons.Default.Notes
+                            ) {
+                                Text(
+                                    application.personalStatement,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black
+                                )
+                            }
+                        }
                     }
 
                     item {
@@ -534,7 +593,28 @@ fun InternAcceptRejectButtons(
             // Check if application is already processed
             when (applicationStatus) {
                 ApplicationStatus.ACCEPTED -> {
-                    // Show Generate Offer Letter button after acceptance
+                // Check if offer letter is generated
+                if (OfferLetterDataManager.isOfferLetterGeneratedForApplication(applicationId = application.id)) {
+                    // Show offer letter generated status
+                    Column {
+                        Text(
+                            text = "Application Accepted ✓",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Green,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        Text(
+                            text = "Offer Letter Generated ✓",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Blue,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    // Show Generate Offer Letter button
                     Column {
                         Text(
                             text = "Application Accepted ✓",
@@ -548,14 +628,19 @@ fun InternAcceptRejectButtons(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
                         ) {
-
-                            AnimatedButton(onclick = {
-                                navController.navigate("offer_generator_screen/${application.id}/internship")
-                                                     onDismiss()},
-                                text = "Generate Offer Letter", delay = 300, filled = true)
+                            AnimatedButton(
+                                onclick = {
+                                    navController.navigate("offer_generator_screen/${application.id}/internship")
+                                    onDismiss()
+                                },
+                                text = "Generate Offer Letter",
+                                delay = 300,
+                                filled = true
+                            )
                         }
                     }
                 }
+            }
 
                 ApplicationStatus.REJECTED -> {
                     // Show rejection status

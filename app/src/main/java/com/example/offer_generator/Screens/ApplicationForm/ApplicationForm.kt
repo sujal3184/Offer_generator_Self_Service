@@ -877,8 +877,6 @@ private fun validateWorkDetails(formData: FormData, userType: String?): Validati
         "freelancer" -> {
             when {
                 formData.projectStartDate.isBlank() -> ValidationResult(false, "Project start date is required", "projectStartDate")
-                !validateProjectDates(formData.projectStartDate, formData.projectEndDate).isValid ->
-                    validateProjectDates(formData.projectStartDate, formData.projectEndDate)
                 formData.serviceCategory.isBlank() -> ValidationResult(false, "Service category is required", "serviceCategory")
                 formData.skillsList.isEmpty() -> ValidationResult(false, "At least one skill is required", "skillsList")
                 formData.hourlyRate.isBlank() -> ValidationResult(false, "Hourly rate is required", "hourlyRate")
@@ -1166,7 +1164,6 @@ fun validateAvailabilityDates(startDate: String, endDate: String, userType: Stri
 // Project dates validation for freelancers
 fun validateProjectDates(startDate: String, endDate: String): ValidationResult {
     if (startDate.isBlank()) return ValidationResult(false, "Project start date is required")
-    if (endDate.isBlank()) return ValidationResult(false, "Project end date is required")
 
     return try {
         val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())

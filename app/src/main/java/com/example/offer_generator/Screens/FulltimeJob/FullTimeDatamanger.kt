@@ -19,6 +19,7 @@ data class FullTimeApplication(
     val branch : String,
     val graduationYear: String,
     val cgpaPercentage: String,
+    val yearOfExperience: String ?= null,
     val previousCompany: String?,
 
     // Project Details

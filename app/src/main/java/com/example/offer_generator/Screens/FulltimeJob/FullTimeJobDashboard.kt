@@ -630,9 +630,14 @@ fun ApplicationDetailDialog(
                         ) {
                             DetailRow("Full Name", application.fullName)
                             DetailRow("Date of Birth", application.dateOfBirth)
+                            DetailRow("College", application.college)
+                            DetailRow("Branch", application.branch)
                             DetailRow("CGPA", application.cgpaPercentage)
-//                            DetailRow("Current Location", application.)
-//                            DetailRow("Availability Status", application.availabilityStatus)
+                            DetailRow("Year Of passing",application.graduationYear)
+                            if(application.yearOfExperience!=null) DetailRow("Year Of Experience ", application.yearOfExperience)
+                            if(application.previousCompany!=null) DetailRow("Previous Company", application.previousCompany)
+
+
                         }
                     }
 
@@ -641,10 +646,12 @@ fun ApplicationDetailDialog(
                             title = "Internship Details",
                             icon = Icons.Default.Work
                         ) {
-                            DetailRow("Service category", application.jobRole)
                             DetailRow("Available From", application.availableFrom)
+                            DetailRow("Job Role", application.jobRole)
                             DetailRow("Status", application.status.name.replace("_", " "))
+                            DetailRow("Expected Salary", application.expectedSalary)
                             DetailRow("Submission Date", application.submissionDate)
+                            DetailRow("Notice Period ",application.noticePeriod)
                         }
                     }
 
@@ -834,24 +841,6 @@ fun DocumentsSection(application: FullTimeApplication) {
 
         // Add spacing between documents
         Spacer(modifier = Modifier.height(8.dp))
-
-//        // Portfolio section (if available)
-//        if (application.portfolioWebsite.isNotEmpty()) {
-//            DocumentItem(
-//                fileName = "Portfolio Website",
-//                displayName = "Portfolio",
-//                isAvailable = true,
-//                isWebLink = true,
-//                onClick = {
-//                    try {
-//                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(application.portfolioWebsite))
-//                        context.startActivity(intent)
-//                    } catch (e: Exception) {
-//                        Toast.makeText(context, "Unable to open portfolio link", Toast.LENGTH_SHORT).show()
-//                    }
-//                }
-//            )
-//        }
 
         // Debug information (remove in production)
         if (BuildConfig.DEBUG) {

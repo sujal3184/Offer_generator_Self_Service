@@ -3,6 +3,7 @@
 import com.example.offer_generator.Screens.Freelancer.FreelancerDataManager
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeDatamanger
 import com.example.offer_generator.Screens.Internship.InternshipDataManager
+import com.example.offer_generator.Screens.OfferLetters.OfferLetterTemplate
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,7 +43,7 @@ data class OfferLetter(
     val position: String,
     val salary: String,
     val startDate: String,
-    val endDate: String? = null, // Optional - null for full-time positions
+    val endDate: String? = null,
     val location: String,
     val description: String,
     val benefits: String,
@@ -54,13 +55,15 @@ data class OfferLetter(
     val type: OfferType,
     val acceptedDate: String? = null,
     val rejectedDate: String? = null,
-    val rejectionReason: String? = null,
-    val candidateResponse: String? = null,
-    val modifiedDate: String? = null,
-    val attachments: List<String> = emptyList(), // File paths or URLs
-    val signedDocument: SignedOfferDocument? = null
+    val attachments: List<String> = emptyList(),
+    val signedDocument: SignedOfferDocument? = null,
+
+    // Add template information
+    val templateType: OfferLetterTemplate,
+    val customTemplateId: String?,
+    val customTemplateContent: String?
 ) {
-    // Convenience properties for the UI
+    // Existing convenience properties...
     val hasSignedDocument: Boolean
         get() = signedDocument != null
 
@@ -91,23 +94,11 @@ data class OfferLetterStats(
     val fulltimeOffers: Int
 )
 
-// Data class for offer letter filtering
-data class OfferLetterFilter(
-    val status: OfferStatus? = null,
-    val type: OfferType? = null,
-    val dateFrom: String? = null,
-    val dateTo: String? = null,
-    val companyName: String? = null,
-    val candidateName: String? = null,
-    val hasSigned: Boolean? = null // Added filter for signed documents
-)
-
 // Helper function to create a new offer with signed document
 fun OfferLetter.withSignedDocument(signedDoc: SignedOfferDocument): OfferLetter {
     return this.copy(
         signedDocument = signedDoc,
         status = if (this.status == OfferStatus.ACCEPTED) OfferStatus.SIGNED else this.status,
-        modifiedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
     )
 }
 
@@ -131,7 +122,10 @@ object OfferLetterDataManager {
         benefits: String,
         terms: String,
         validUntil: String,
-        generatedBy: String
+        generatedBy: String,
+        templateType: OfferLetterTemplate,
+        customTemplateId: String?,
+        customTemplateContent: String?
     ): OfferLetter {
         // Find the application to get candidate details
         val application = InternshipDataManager.applications.find { it.id == applicationId }
@@ -157,7 +151,10 @@ object OfferLetterDataManager {
                 Locale.getDefault()
             ).format(Date()),
             status = OfferStatus.PENDING,
-            type = OfferType.INTERN
+            type = OfferType.INTERN,
+            templateType = templateType,
+            customTemplateId = customTemplateId,
+            customTemplateContent = customTemplateContent
         )
 
         _offerLetters.add(offerLetter)
@@ -177,7 +174,10 @@ object OfferLetterDataManager {
         benefits: String,
         terms: String,
         validUntil: String,
-        generatedBy: String
+        generatedBy: String,
+        templateType: OfferLetterTemplate,
+        customTemplateId: String?,
+        customTemplateContent: String?
     ): OfferLetter {
         // Find the application to get candidate details
         val application = FreelancerDataManager.applications.find { it.id == applicationId }
@@ -203,7 +203,10 @@ object OfferLetterDataManager {
                 Locale.getDefault()
             ).format(Date()),
             status = OfferStatus.PENDING,
-            type = OfferType.FREELANCER
+            type = OfferType.FREELANCER,
+            templateType = templateType,
+            customTemplateId = customTemplateId,
+            customTemplateContent = customTemplateContent
         )
 
         _offerLetters.add(offerLetter)
@@ -223,7 +226,10 @@ object OfferLetterDataManager {
         benefits: String,
         terms: String,
         validUntil: String,
-        generatedBy: String
+        generatedBy: String,
+        templateType: OfferLetterTemplate,
+        customTemplateId: String?,
+        customTemplateContent: String?
     ): OfferLetter {
         // Find the application to get candidate details
         val application = FullTimeDatamanger.applications.find { it.id == applicationId }
@@ -249,7 +255,10 @@ object OfferLetterDataManager {
                 Locale.getDefault()
             ).format(Date()),
             status = OfferStatus.PENDING,
-            type = OfferType.FULLTIME
+            type = OfferType.FULLTIME,
+            templateType = templateType,
+            customTemplateId = customTemplateId,
+            customTemplateContent = customTemplateContent
         )
 
         _offerLetters.add(offerLetter)
@@ -293,11 +302,8 @@ object OfferLetterDataManager {
 
         val updatedOffer = currentOffer.copy(
             status = newStatus,
-            modifiedDate = currentDate,
             acceptedDate = if (newStatus == OfferStatus.ACCEPTED) currentDate else currentOffer.acceptedDate,
             rejectedDate = if (newStatus == OfferStatus.REJECTED) currentDate else currentOffer.rejectedDate,
-            rejectionReason = if (newStatus == OfferStatus.REJECTED) rejectionReason else currentOffer.rejectionReason,
-            candidateResponse = candidateResponse ?: currentOffer.candidateResponse
         )
 
         _offerLetters[offerIndex] = updatedOffer

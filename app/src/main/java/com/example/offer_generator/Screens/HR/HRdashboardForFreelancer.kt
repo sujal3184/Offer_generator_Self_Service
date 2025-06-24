@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Card
@@ -420,56 +421,109 @@ fun FreelancerApplicationDetailDialog(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     item {
-                        DetailSection(
+                        com.example.offer_generator.Screens.Freelancer.DetailSection(
                             title = "Personal Information",
                             icon = Icons.Default.Person
                         ) {
-                            DetailRow("Full Name", application.fullName)
-                            DetailRow("Date of Birth", application.dateOfBirth)
-//                            DetailRow("Experience Level", application.experienceLevel ?: "Not specified")
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Full Name",
+                                application.fullName
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Date of Birth",
+                                application.dateOfBirth
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Year of Experience",
+                                application.yearsOfExperience
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Current Location",
+                                application.currentLocation
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Availability Status",
+                                application.availabilityStatus
+                            )
                         }
                     }
 
                     item {
-                        DetailSection(
-                            title = "Project Details",
+                        com.example.offer_generator.Screens.Freelancer.DetailSection(
+                            title = "Internship Details",
                             icon = Icons.Default.Work
                         ) {
-//                            DetailRow("Project Type", application.projectType ?: "Not specified")
-//                            DetailRow("Budget Range", application.budgetRange ?: "Not specified")
-//                            DetailRow("Timeline", application.timeline ?: "Not specified")
-                            DetailRow("Status", application.status.name)
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Service category",
+                                application.serviceCategory
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Available From",
+                                application.projectStartDate
+                            )
+                            application.projectEndDate?.let {
+                                com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                    "Available Until",
+                                    it
+                                )
+                            }
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Status",
+                                application.status.name.replace("_", " ")
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Submission Date",
+                                application.submissionDate
+                            )
                         }
                     }
 
                     item {
-                        DetailSection(
+                        com.example.offer_generator.Screens.Freelancer.DetailSection(
+                            title = "Skills",
+                            icon = Icons.Default.Star
+                        ) {
+                            Text(
+                                application.skills.joinToString(", "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+                    }
+
+                    item {
+                        com.example.offer_generator.Screens.Freelancer.DetailSection(
                             title = "Contact Information",
                             icon = Icons.Default.Phone
                         ) {
-                            DetailRow("Email", application.email)
-                            DetailRow("Phone", application.mobileNumber)
-//                            DetailRow("Address", application.address)
-                        }
-                    }
-
-                    item {
-                        DetailSection(
-                            title = "Application Details",
-                            icon = Icons.Default.Description
-                        ) {
-                            DetailRow("Submission Date", application.submissionDate)
-                            DetailRow("Skills", application.skills.toString())
-                        }
-                    }
-
-                    item {
-                        DetailSection(
-                            title = "Additional Information",
-                            icon = Icons.Default.Notes
-                        ) {
-//                            DetailRow("Cover Letter", application.coverLetter ?: "Not provided")
-//                            DetailRow("Previous Experience", application.previousExperience ?: "Not specified")
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Mobile",
+                                application.mobileNumber
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Email",
+                                application.email
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "LinkedIn",
+                                application.linkedinProfile
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "GitHub",
+                                application.githubLink
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Portfolio",
+                                application.portfolioWebsite
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Client References",
+                                application.clientReferences
+                            )
+                            com.example.offer_generator.Screens.Freelancer.DetailRow(
+                                "Professional Summary",
+                                application.professionalSummary
+                            )
                         }
                     }
 

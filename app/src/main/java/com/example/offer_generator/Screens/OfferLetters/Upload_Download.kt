@@ -1,5 +1,6 @@
 package com.example.offer_generator.Screens.OfferLetters
 
+import OfferLetter
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -80,35 +81,68 @@ data class UploadedDocument(
     }
 }
 
-// Object to store uploaded documents globally
+// Updated DocumentStorage.kt to support per-offer document storage
 object DocumentStorage {
-    private var _uploadedDocument: UploadedDocument? = null
+    private val documents = mutableMapOf<String, UploadedDocument?>()
 
-    fun setDocument(document: UploadedDocument) {
-        _uploadedDocument = document
+    // Generate unique key for each offer/application
+    private fun generateKey(offerId: String?, applicationId: String?, candidateEmail: String?): String {
+        return when {
+            !offerId.isNullOrEmpty() -> "offer_$offerId"
+            !applicationId.isNullOrEmpty() -> "app_$applicationId"
+            !candidateEmail.isNullOrEmpty() -> "email_$candidateEmail"
+            else -> "default" // Fallback, though this shouldn't happen
+        }
     }
 
-    fun getDocument(): UploadedDocument? = _uploadedDocument
-
-    fun clearDocument() {
-        _uploadedDocument = null
+    fun getDocument(offerId: String? = null, applicationId: String? = null, candidateEmail: String? = null): UploadedDocument? {
+        val key = generateKey(offerId, applicationId, candidateEmail)
+        return documents[key]
     }
 
-    fun hasDocument(): Boolean = _uploadedDocument != null
+    fun setDocument(document: UploadedDocument, offerId: String? = null, applicationId: String? = null, candidateEmail: String? = null) {
+        val key = generateKey(offerId, applicationId, candidateEmail)
+        documents[key] = document
+    }
+
+    fun clearDocument(offerId: String? = null, applicationId: String? = null, candidateEmail: String? = null) {
+        val key = generateKey(offerId, applicationId, candidateEmail)
+        documents.remove(key)
+    }
+
+    // Optional: Clear all documents (for testing or cleanup)
+    fun clearAllDocuments() {
+        documents.clear()
+    }
+
+    // Optional: Get all stored documents (for debugging)
+    fun getAllDocuments(): Map<String, UploadedDocument?> {
+        return documents.toMap()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignedOfferLetterScreen(
     viewModel: WhoLoginViewModel,
+    offer: OfferLetter? = null, // Add offer parameter
     onClose: () -> Unit = {}
 ) {
-    var uploadedDocument by remember { mutableStateOf(DocumentStorage.getDocument()) }
+    // Use offer-specific document storage
+    var uploadedDocument by remember {
+        mutableStateOf(
+            DocumentStorage.getDocument(
+                offerId = offer?.id,
+                applicationId = offer?.applicationId,
+                candidateEmail = offer?.candidateEmail
+            )
+        )
+    }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isDownloading by remember { mutableStateOf(false) }
     var showSuccessAnimation by remember { mutableStateOf(false) }
-    var isUploading by remember { mutableStateOf(false) } // New state for server upload
+    var isUploading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val isHR = viewModel.isHrLoggedIn.value
@@ -139,9 +173,6 @@ fun SignedOfferLetterScreen(
         )
     )
 
-    // Simulate server upload (replace with actual API call)
-
-    // Remove the @Composable annotation and make it a regular suspend function
     suspend fun uploadToServer(
         document: UploadedDocument,
         onStart: () -> Unit,
@@ -174,7 +205,13 @@ fun SignedOfferLetterScreen(
                 },
                 onSuccess = { updatedDocument ->
                     uploadedDocument = updatedDocument
-                    DocumentStorage.setDocument(updatedDocument)
+                    // Save with offer-specific key
+                    DocumentStorage.setDocument(
+                        updatedDocument,
+                        offerId = offer?.id,
+                        applicationId = offer?.applicationId,
+                        candidateEmail = offer?.candidateEmail
+                    )
                     showSuccessAnimation = true
                     isUploading = false
 
@@ -202,7 +239,7 @@ fun SignedOfferLetterScreen(
     fun downloadPDFToStorage(document: UploadedDocument) {
         isDownloading = true
         try {
-            val fileName = "signed_offer_letter_${System.currentTimeMillis()}.pdf"
+            val fileName = "signed_offer_letter_${offer?.candidateName?.replace(" ", "_") ?: "candidate"}_${System.currentTimeMillis()}.pdf"
 
             val file = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
@@ -219,7 +256,13 @@ fun SignedOfferLetterScreen(
 
             val updatedDocument = document.copy(localFilePath = file.absolutePath)
             uploadedDocument = updatedDocument
-            DocumentStorage.setDocument(updatedDocument)
+            // Save with offer-specific key
+            DocumentStorage.setDocument(
+                updatedDocument,
+                offerId = offer?.id,
+                applicationId = offer?.applicationId,
+                candidateEmail = offer?.candidateEmail
+            )
 
             Toast.makeText(
                 context,
@@ -247,7 +290,12 @@ fun SignedOfferLetterScreen(
             }
         }
         uploadedDocument = null
-        DocumentStorage.clearDocument()
+        // Clear with offer-specific key
+        DocumentStorage.clearDocument(
+            offerId = offer?.id,
+            applicationId = offer?.applicationId,
+            candidateEmail = offer?.candidateEmail
+        )
         errorMessage = null
         showSuccessAnimation = false
         Toast.makeText(context, "Document removed", Toast.LENGTH_SHORT).show()
@@ -276,7 +324,13 @@ fun SignedOfferLetterScreen(
                         isUploadedToServer = false
                     )
                     uploadedDocument = document
-                    DocumentStorage.setDocument(document)
+                    // Save with offer-specific key
+                    DocumentStorage.setDocument(
+                        document,
+                        offerId = offer?.id,
+                        applicationId = offer?.applicationId,
+                        candidateEmail = offer?.candidateEmail
+                    )
                     downloadPDFToStorage(document)
                 } else {
                     errorMessage = "Error reading PDF file"
@@ -337,6 +391,33 @@ fun SignedOfferLetterScreen(
                 .fillMaxSize()
                 .padding(24.dp)
         ) {
+            // Header with offer information
+            if (offer != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = cardWhite),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "${offer.position} • ${offer.companyName}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textSecondary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Text(
+                            text = "Candidate: ${offer.candidateName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = textSecondary,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                }
+            }
 
             // Main Content Area
             Column(
@@ -726,19 +807,7 @@ private fun DocumentUploadedContent(
             textAlign = TextAlign.Center,
             color = textPrimary
         )
-
-        Text(
-            text = when {
-                isHR -> "The candidate has successfully uploaded their signed offer letter"
-                document.isUploadedToServer -> "Your signed offer letter has been uploaded successfully"
-                else -> "Document is ready for upload to the server"
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            color = textSecondary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 12.dp, bottom = 32.dp, start = 24.dp, end = 24.dp),
-            lineHeight = 24.sp
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Enhanced File Info Card
         Card(
