@@ -5,52 +5,64 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import com.example.offer_generator.Screens.Freelancer.FreelancerApplication
-import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatistics
-import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatus
-import com.example.offer_generator.Screens.Freelancer.FreelancerDataManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,6 +96,7 @@ import com.example.offer_generator.ViewModels.WhoLoginViewModel
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
 import com.example.offer_generator.Screens.ApplicationForm.FormData
+import com.example.offer_generator.Screens.Freelancer.DatePickerDialog
 import com.example.offer_generator.Screens.Internship.ToggleSection
 import com.example.offer_generator.Screens.Internship.resetForm
 import com.example.offer_generator.Screens.OfferLetters.NoOfferLetters
@@ -252,6 +265,13 @@ fun ApplicationsContent(
     navController: NavController,
     viewModel : WhoLoginViewModel
 ) {
+    // FIXED: Use applications parameter instead of InternshipDataManager.applications
+    var filteredApplications by remember { mutableStateOf(applications) }
+
+    // Update filteredApplications when applications change
+    LaunchedEffect(applications) {
+        filteredApplications = applications
+    }
     // Statistics Cards
     Text(
         "Application Overview",
@@ -292,17 +312,12 @@ fun ApplicationsContent(
                 .background(Color.Gray.copy(alpha = 0.1f))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            androidx.compose.material3.Icon(
-                Icons.Default.List,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                "${applications.size} Applications",
-                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+            FilterButton(
+                onFilterApplied = { criteria ->
+                    // FIXED: Apply filter to visible applications instead of all applications
+                    filteredApplications = applications.applyFilters(criteria)
+                },
+                modifier = Modifier.padding(0.dp) // Removed extra padding
             )
         }
     }
@@ -358,7 +373,7 @@ fun ApplicationsContent(
     Spacer(modifier = Modifier.height(8.dp))
 
     // Applications List
-    applications.forEach { application ->
+    filteredApplications.forEach { application ->
         EnhancedApplicationCard(
             application = application,
             onViewDetails = onViewDetails
@@ -1058,5 +1073,492 @@ fun NoApplication(navController: NavController,viewModel : WhoLoginViewModel) {
                 }
             }
         }
+    }
+}
+@Composable
+fun FilterButton(
+    onFilterApplied: (FilterCriteria) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showFilterDialog by remember { mutableStateOf(false) }
+
+    // Enhanced Filter Button with better styling
+    Button(
+        onClick = { showFilterDialog = true },
+        modifier = modifier.height(36.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        shape = RoundedCornerShape(18.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.FilterList,
+            contentDescription = "Filter Applications",
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "Filter",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium
+            )
+        )
+    }
+
+    // Filter Dialog
+    if (showFilterDialog) {
+        FilterDialog(
+            onDismiss = { showFilterDialog = false },
+            onApplyFilter = { criteria ->
+                onFilterApplied(criteria)
+                showFilterDialog = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterDialog(
+    onDismiss: () -> Unit,
+    onApplyFilter: (FilterCriteria) -> Unit
+) {
+    var selectedStatus by remember { mutableStateOf<FullTimeApplicationStatus?>(null) }
+    var jobRoleFilter by remember { mutableStateOf("") }
+    var dateFromFilter by remember { mutableStateOf("") }
+    var dateToFilter by remember { mutableStateOf("") }
+
+    // Date picker states
+    var showFromDatePicker by remember { mutableStateOf(false) }
+    var showToDatePicker by remember { mutableStateOf(false) }
+
+    // Date picker dialogs
+    if (showFromDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showFromDatePicker = false },
+            onDateSelected = { date ->
+                dateFromFilter = date
+                showFromDatePicker = false
+            }
+        )
+    }
+
+    if (showToDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showToDatePicker = false },
+            onDateSelected = { date ->
+                dateToFilter = date
+                showToDatePicker = false
+            }
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.Transparent,
+        tonalElevation = 0.dp,
+        title = null,
+        text = {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Custom header that spans full width
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF6A5ACD), // Purple
+                                        Color(0xFF4169E1)  // Blue
+                                    )
+                                ),
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Filter Applications",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .background(
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.White
+                            )
+                        }
+                    }
+
+                    // Content area
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        // Status Filter
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF8F9FA)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Application Status",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF6A5ACD),
+                                        modifier = Modifier.padding(bottom = 12.dp)
+                                    )
+
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        item {
+                                            FilterChip(
+                                                selected = selectedStatus == null,
+                                                onClick = { selectedStatus = null },
+                                                label = { Text("All") },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = Color(0xFF6A5ACD),
+                                                    selectedLabelColor = Color.White,
+                                                    containerColor = Color.White,
+                                                    labelColor = Color(0xFF6A5ACD)
+                                                )
+                                            )
+                                        }
+                                        items(FullTimeApplicationStatus.values()) { status ->
+                                            FilterChip(
+                                                selected = selectedStatus == status,
+                                                onClick = {
+                                                    selectedStatus =
+                                                        if (selectedStatus == status) null else status
+                                                },
+                                                label = {
+                                                    Text(
+                                                        text = status.name.replace("_", " ")
+                                                            .lowercase()
+                                                            .split(" ")
+                                                            .joinToString(" ") { word ->
+                                                                word.replaceFirstChar { it.uppercase() }
+                                                            }
+                                                    )
+                                                },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = Color(0xFF4169E1),
+                                                    selectedLabelColor = Color.White,
+                                                    containerColor = Color.White,
+                                                    labelColor = Color(0xFF4169E1)
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Job Role Filter
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF8F9FA)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Job Role",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF6A5ACD),
+                                        modifier = Modifier.padding(bottom = 12.dp)
+                                    )
+                                    OutlinedTextField(
+                                        value = jobRoleFilter,
+                                        onValueChange = { jobRoleFilter = it },
+                                        placeholder = {
+                                            Text(
+                                                "Enter job role...",
+                                                color = Color.Gray
+                                            )
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color(0xFF6A5ACD),
+                                            unfocusedBorderColor = Color(0xFF6A5ACD).copy(alpha = 0.5f),
+                                            cursorColor = Color(0xFF6A5ACD),
+                                            focusedTextColor = Color(0xFF2E7D32), // Dark Green for entered text
+                                            unfocusedTextColor = Color(0xFF2E7D32), // Dark Green for entered text
+                                        ),
+                                        textStyle = LocalTextStyle.current.copy(
+                                            fontWeight = FontWeight.Medium
+                                        ),
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.Work,
+                                                contentDescription = "Job Role",
+                                                tint = Color(0xFF6A5ACD)
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Available From Date Range Filter
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF8F9FA)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Available From Date Range",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF6A5ACD),
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+
+                                    // From Date Field
+                                    OutlinedTextField(
+                                        value = dateFromFilter,
+                                        onValueChange = { }, // Read-only
+                                        label = {
+                                            Text(
+                                                "Available From",
+                                                color = Color(0xFF6A5ACD),
+                                                fontSize = 14.sp
+                                            )
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                "Select start date (DD/MM/YYYY)",
+                                                color = Color.Gray,
+                                                fontSize = 12.sp
+                                            )
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { showFromDatePicker = true },
+                                        readOnly = true,
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color(0xFF6A5ACD),
+                                            unfocusedBorderColor = Color(0xFF6A5ACD).copy(alpha = 0.5f),
+                                            focusedLabelColor = Color(0xFF6A5ACD),
+                                            unfocusedLabelColor = Color(0xFF6A5ACD).copy(alpha = 0.7f),
+                                            cursorColor = Color(0xFF6A5ACD),
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black,
+                                        ),
+                                        textStyle = LocalTextStyle.current.copy(
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color.Black,
+                                            fontSize = 14.sp
+                                        ),
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.DateRange,
+                                                contentDescription = "From Date",
+                                                tint = Color(0xFF6A5ACD)
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            IconButton(
+                                                onClick = { showFromDatePicker = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CalendarToday,
+                                                    contentDescription = "Open Calendar",
+                                                    tint = Color(0xFF6A5ACD)
+                                                )
+                                            }
+                                        }
+                                    )
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    // To Date Field
+                                    OutlinedTextField(
+                                        value = dateToFilter,
+                                        onValueChange = { }, // Read-only
+                                        label = {
+                                            Text(
+                                                "Available To",
+                                                color = Color(0xFF4169E1),
+                                                fontSize = 14.sp
+                                            )
+                                        },
+                                        placeholder = {
+                                            Text(
+                                                "Select end date (DD/MM/YYYY)",
+                                                color = Color.Gray,
+                                                fontSize = 12.sp
+                                            )
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { showToDatePicker = true },
+                                        readOnly = true,
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color(0xFF4169E1),
+                                            unfocusedBorderColor = Color(0xFF4169E1).copy(alpha = 0.5f),
+                                            focusedLabelColor = Color(0xFF4169E1),
+                                            unfocusedLabelColor = Color(0xFF4169E1).copy(alpha = 0.7f),
+                                            cursorColor = Color(0xFF4169E1),
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black,
+                                        ),
+                                        textStyle = LocalTextStyle.current.copy(
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color.Black,
+                                            fontSize = 14.sp
+                                        ),
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.DateRange,
+                                                contentDescription = "To Date",
+                                                tint = Color(0xFF4169E1)
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            IconButton(
+                                                onClick = { showToDatePicker = true }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CalendarToday,
+                                                    contentDescription = "Open Calendar",
+                                                    tint = Color(0xFF4169E1)
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Action buttons at the bottom
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                // Clear all filters
+                                selectedStatus = null
+                                jobRoleFilter = ""
+                                dateFromFilter = ""
+                                dateToFilter = ""
+                                onApplyFilter(FilterCriteria())
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color(0xFF6A5ACD)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF6A5ACD)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Clear All", fontWeight = FontWeight.Medium)
+                        }
+
+                        Button(
+                            onClick = {
+                                onApplyFilter(
+                                    FilterCriteria(
+                                        status = selectedStatus,
+                                        jobRole = jobRoleFilter.takeIf { it.isNotBlank() },
+                                        availableFrom = dateFromFilter.takeIf { it.isNotBlank() },
+                                        availableTo = dateToFilter.takeIf { it.isNotBlank() }
+                                    )
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4169E1),
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Apply Filter", fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
+}
+
+// Data class to hold filter criteria for FullTime applications
+data class FilterCriteria(
+    val status: FullTimeApplicationStatus? = null,
+    val jobRole: String? = null,
+    val availableFrom: String? = null,
+    val availableTo: String? = null
+)
+
+// Extension function to apply filters to FullTime applications list
+fun List<FullTimeApplication>.applyFilters(criteria: FilterCriteria): List<FullTimeApplication> {
+    return this.filter { application ->
+        val statusMatch = criteria.status?.let { application.status == it } ?: true
+        val jobRoleMatch = criteria.jobRole?.let {
+            application.jobRole.contains(it, ignoreCase = true)
+        } ?: true
+
+        // Basic date filtering for available from date
+        val availableFromMatch = criteria.availableFrom?.let { fromDate ->
+            application.availableFrom >= fromDate
+        } ?: true
+        val availableToMatch = criteria.availableTo?.let { toDate ->
+            application.availableFrom <= toDate
+        } ?: true
+
+        statusMatch && jobRoleMatch && availableFromMatch && availableToMatch
     }
 }

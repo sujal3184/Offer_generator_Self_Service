@@ -46,6 +46,9 @@ import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import com.example.offer_generator.ProfessionalTheme
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeDatamanger
 import com.example.offer_generator.Screens.Internship.resetForm
 import com.example.offer_generator.ViewModels.JobOpeningsViewModel
@@ -103,7 +106,18 @@ fun ApplicationScreen(navController: NavController, whoLoginViewModel : WhoLogin
                     Modifier
                         .fillMaxWidth()
                         .height(100.dp)
-                        .background(color = colorResource(id = R.color.purple)),
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    ProfessionalTheme.Purple,
+                                    colorResource(R.color.topbarbackgound),
+                                    colorResource(R.color.Lightpurple),
+                                    ProfessionalTheme.Purple
+                                ),
+                                start = Offset.Zero,
+                                end = Offset.Infinite
+                            )
+                        ),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Column(

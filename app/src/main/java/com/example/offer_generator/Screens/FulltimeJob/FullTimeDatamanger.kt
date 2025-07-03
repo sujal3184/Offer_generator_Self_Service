@@ -113,7 +113,7 @@ object FullTimeDatamanger {
             status = FullTimeApplicationStatus.SUBMITTED
         )
 
-        _applications.add(application)
+        _applications.add(0,application)
         totalSubmissions++
         return application
     }

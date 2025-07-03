@@ -39,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,9 @@ import com.example.offer_generator.R
 import com.example.offer_generator.Screens.Freelancer.FreelancerApplication
 import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatistics
 import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatus
+import com.example.offer_generator.Screens.FulltimeJob.applyFilters
+import com.example.offer_generator.Screens.Freelancer.FilterButton
+import com.example.offer_generator.Screens.Freelancer.applyFilters
 import com.example.offer_generator.Screens.Internship.ToggleSection
 import com.example.offer_generator.Screens.OfferLetters.NoOfferLetters
 import com.example.offer_generator.Screens.OfferLetters.OfferLetterGenerator
@@ -175,6 +179,12 @@ fun FreelancerApplicationsList(
     applications: List<FreelancerApplication>,
     onViewDetails: (FreelancerApplication) -> Unit
 ) {
+    var filteredApplications by remember { mutableStateOf(applications) }
+
+    // Update filteredApplications when applications change
+    LaunchedEffect(applications) {
+        filteredApplications = applications
+    }
     // Applications Header
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -194,17 +204,12 @@ fun FreelancerApplicationsList(
                 .background(Color.Gray.copy(alpha = 0.1f))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Icon(
-                Icons.Default.List,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                "${applications.size} Applications",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+            FilterButton(
+                onFilterApplied = { criteria ->
+                    // FIXED: Apply filter to visible applications instead of all applications
+                    filteredApplications = applications.applyFilters(criteria)
+                },
+                modifier = Modifier.padding(0.dp) // Removed extra padding
             )
         }
     }
@@ -260,7 +265,7 @@ fun FreelancerApplicationsList(
     Spacer(modifier = Modifier.height(8.dp))
 
     // Freelancer Applications List
-    applications.forEach { application ->
+    filteredApplications.forEach { application ->
         EnhancedFreelancerApplicationCard(
             application = application,
             onViewDetails = onViewDetails

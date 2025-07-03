@@ -39,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,9 +64,11 @@ import com.example.offer_generator.Screens.Internship.ApplicationStatistics
 import com.example.offer_generator.Screens.Internship.ApplicationStatus
 import com.example.offer_generator.Screens.Internship.CVViewerDialog
 import com.example.offer_generator.Screens.Internship.DocumentsSection
+import com.example.offer_generator.Screens.Internship.FilterButton
 import com.example.offer_generator.Screens.Internship.InternshipApplication
 import com.example.offer_generator.Screens.Internship.StatusChip
 import com.example.offer_generator.Screens.Internship.ToggleSection
+import com.example.offer_generator.Screens.Internship.applyFilters
 import com.example.offer_generator.Screens.OfferLetters.NoOfferLetters
 import com.example.offer_generator.Screens.OfferLetters.OfferLettersContent
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
@@ -176,6 +179,13 @@ fun ApplicationsList(
     applications: List<InternshipApplication>,
     onViewDetails: (InternshipApplication) -> Unit
 ) {
+    // FIXED: Use applications parameter instead of InternshipDataManager.applications
+    var filteredApplications by remember { mutableStateOf(applications) }
+
+    // Update filteredApplications when applications change
+    LaunchedEffect(applications) {
+        filteredApplications = applications
+    }
     // Applications Header
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -195,17 +205,12 @@ fun ApplicationsList(
                 .background(Color.Gray.copy(alpha = 0.1f))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Icon(
-                Icons.Default.List,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                "${applications.size} Applications",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+            FilterButton(
+                onFilterApplied = { criteria ->
+                    // FIXED: Apply filter to visible applications instead of all applications
+                    filteredApplications = applications.applyFilters(criteria)
+                },
+                modifier = Modifier.padding(0.dp) // Removed extra padding
             )
         }
     }
@@ -261,7 +266,7 @@ fun ApplicationsList(
     Spacer(modifier = Modifier.height(8.dp))
 
     // Applications List
-    applications.forEach { application ->
+    filteredApplications.forEach { application ->
         EnhancedApplicationCard(
             application = application,
             onViewDetails = onViewDetails
@@ -505,14 +510,18 @@ fun ApplicationDetailDialog(
                                 "Email",
                                 application.email
                             )
-                            com.example.offer_generator.Screens.Internship.DetailRow(
-                                "LinkedIn",
-                                application.linkedinProfile
-                            )
-                            com.example.offer_generator.Screens.Internship.DetailRow(
-                                "GitHub",
-                                application.githubLink
-                            )
+                            if (application.linkedinProfile.isNotEmpty()) {
+                                com.example.offer_generator.Screens.Internship.DetailRow(
+                                    "LinkedIn",
+                                    application.linkedinProfile
+                                )
+                            }
+                            if(application.githubLink.isNotEmpty()) {
+                                com.example.offer_generator.Screens.Internship.DetailRow(
+                                    "GitHub",
+                                    application.githubLink
+                                )
+                            }
                             if (application.portfolioWebsite.isNotEmpty()) {
                                 com.example.offer_generator.Screens.Internship.DetailRow(
                                     "Portfolio",

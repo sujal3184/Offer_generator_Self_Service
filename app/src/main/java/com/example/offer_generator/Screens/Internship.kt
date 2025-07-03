@@ -223,12 +223,6 @@ fun InfoCard(
                             postedJobs.filter { it.employmentType == empType }.sumOf { it.count }
                         }
 
-                        Text(
-                            text = "Domain Overview (Posted Jobs):",
-                            style = MaterialTheme.typography.body2,
-                            fontWeight = FontWeight.Medium,
-                        )
-
                         employmentTypeSummary.forEach { (empType, count) ->
                             if (count > 0) {
                                 Text(

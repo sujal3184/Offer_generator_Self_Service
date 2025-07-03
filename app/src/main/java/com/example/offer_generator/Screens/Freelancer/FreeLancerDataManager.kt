@@ -145,7 +145,7 @@ init{
             status = FreelancerApplicationStatus.SUBMITTED
         )
 
-        _applications.add(application)
+        _applications.add(0,application)
         totalSubmissions++
         return application
     }

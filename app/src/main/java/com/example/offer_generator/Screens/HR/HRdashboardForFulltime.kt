@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,12 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Work
@@ -38,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,16 +55,13 @@ import androidx.navigation.NavController
 import com.example.offer_generator.Navigation.Screen
 import com.example.offer_generator.R
 import com.example.offer_generator.Screens.FulltimeJob.DocumentsSection
-import com.example.offer_generator.Screens.Freelancer.FreelancerApplicationStatus
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeApplication
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeApplicationStatistics
 import com.example.offer_generator.Screens.FulltimeJob.FullTimeApplicationStatus
-import com.example.offer_generator.Screens.Internship.ApplicationStatistics
-import com.example.offer_generator.Screens.Internship.ApplicationStatus
 import com.example.offer_generator.Screens.Internship.CVViewerDialog
-import com.example.offer_generator.Screens.Internship.InternshipApplication
-import com.example.offer_generator.Screens.Internship.StatusChip
+import com.example.offer_generator.Screens.FulltimeJob.FilterButton
 import com.example.offer_generator.Screens.Internship.ToggleSection
+import com.example.offer_generator.Screens.FulltimeJob.applyFilters
 import com.example.offer_generator.Screens.OfferLetters.NoOfferLetters
 import com.example.offer_generator.Screens.OfferLetters.OfferLettersContent
 import com.example.offer_generator.ViewModels.WhoLoginViewModel
@@ -178,6 +172,12 @@ fun FulltimeApplicationList(
     applications: List<FullTimeApplication>,
     onViewDetails: (FullTimeApplication) -> Unit
 ) {
+    var filteredApplications by remember { mutableStateOf(applications) }
+
+    // Update filteredApplications when applications change
+    LaunchedEffect(applications) {
+        filteredApplications = applications
+    }
     // Applications Header
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -197,17 +197,12 @@ fun FulltimeApplicationList(
                 .background(Color.Gray.copy(alpha = 0.1f))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Icon(
-                Icons.Default.List,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                "${applications.size} Applications",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+            FilterButton(
+                onFilterApplied = { criteria ->
+                    // FIXED: Apply filter to visible applications instead of all applications
+                    filteredApplications = applications.applyFilters(criteria)
+                },
+                modifier = Modifier.padding(0.dp) // Removed extra padding
             )
         }
     }
@@ -263,7 +258,7 @@ fun FulltimeApplicationList(
     Spacer(modifier = Modifier.height(8.dp))
 
     // Applications List
-    applications.forEach { application ->
+    filteredApplications.forEach { application ->
         EnhancedFulltimeApplicationCard(
             application = application,
             onViewDetails = onViewDetails

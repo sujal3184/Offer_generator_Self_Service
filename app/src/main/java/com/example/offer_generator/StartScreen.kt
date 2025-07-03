@@ -1,8 +1,16 @@
 package com.example.offer_generator
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.animateColor
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.EaseOutBounce
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -14,6 +22,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -70,12 +79,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -140,16 +152,30 @@ fun StartScreen(
 ) {
     var selectedRole by remember { mutableStateOf<String?>(null) }
     var headerVisible by remember { mutableStateOf(false) }
+    var cardsVisible by remember { mutableStateOf(false) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
+
+    // Logo rotation animation
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = LinearEasing),
+            animation = tween(3000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "rotation"
+    )
+
+    // Top bar gradient animation
+    val topBarColorAnimation by infiniteTransition.animateColor(
+        initialValue = ProfessionalTheme.Purple,
+        targetValue = ProfessionalTheme.PurpleLight,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "topBarColor"
     )
 
     // Button animation - color cycling
@@ -161,6 +187,28 @@ fun StartScreen(
             repeatMode = RepeatMode.Reverse
         ),
         label = "buttonColor"
+    )
+
+    // Floating animation for welcome card
+    val floatingOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "floating"
+    )
+
+    // Pulsing animation for selected role indicator
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
     )
 
     val roles = listOf(
@@ -198,50 +246,68 @@ fun StartScreen(
         )
     )
 
-    // Updated function to only set selected role in ViewModel, not login state
     fun updateViewModelForRole(roleId: String) {
-        // Only set the selected role, don't set any login states
         viewModel.setSelectedRole(roleId)
-        // Navigate to home screen where user will see info and login button
         navController.navigate(Screen.HomeScreen.route)
     }
 
     LaunchedEffect(Unit) {
-        delay(300)
+        delay(200)
         headerVisible = true
+        delay(400)
+        cardsVisible = true
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center){
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        // Animated title with gradient effect
                         Text(
-                            text = "Lokachakra   ",
-                            color = ProfessionalTheme.OnPrimary,
-                            fontSize = 24.sp,
+                            text = "Lokachakra",
+                            color = Color.White,
+                            fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.animateContentSize()
                         )
                     }
-
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = colorResource(R.color.topbarbackgound)
                 ),
-                modifier = Modifier.shadow(
-                    elevation = 8.dp,
-                    spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.4f),
-                    ambientColor = ProfessionalTheme.BlueShadowLight
-                )
+                modifier = Modifier
+                    .shadow(
+                        elevation = 12.dp,
+                        spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.6f),
+                        ambientColor = ProfessionalTheme.BlueShadowLight
+                    )
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                topBarColorAnimation,
+                                topBarColorAnimation.copy(alpha = 0.9f)
+                            )
+                        )
+                    )
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(ProfessionalTheme.White)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            ProfessionalTheme.White,
+                            ProfessionalTheme.Background
+                        )
+                    )
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -257,81 +323,127 @@ fun StartScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Enhanced Animated Header Section
+                // Enhanced Animated Header Section with floating effect
                 AnimatedVisibility(
                     visible = headerVisible,
-                    enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(animationSpec = tween(800, easing = EaseOutCubic))
+                    enter = slideInVertically(
+                        initialOffsetY = { -it * 2 },
+                        animationSpec = tween(1000, easing = EaseOutBounce)
+                    ) + fadeIn(animationSpec = tween(800, easing = EaseOutCubic)) +
+                            scaleIn(
+                                initialScale = 0.8f,
+                                animationSpec = tween(800, easing = EaseOutBack)
+                            )
                 ) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .offset(y = floatingOffset.dp)
                             .shadow(
-                                elevation = 12.dp,
-                                shape = RoundedCornerShape(20.dp),
-                                spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.3f),
+                                elevation = 16.dp,
+                                shape = RoundedCornerShape(24.dp),
+                                spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.4f),
                                 ambientColor = ProfessionalTheme.BlueShadowLight
                             ),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = colorResource(id = R.color.Lightpurple)
+                            containerColor = colorResource(R.color.Lightpurple)
                         )
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            colorResource(R.color.topbarbackgound),
+                                            colorResource(R.color.Lightpurple),
+                                            ProfessionalTheme.Purple
+                                        ),
+                                        start = Offset.Zero,
+                                        end = Offset.Infinite
+                                    )
+                                )
                         ) {
-                            // Icon Section
-                            Box(
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .size(60.dp)
-                                    .shadow(
-                                        elevation = 8.dp,
-                                        shape = CircleShape,
-                                        spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.3f)
-                                    )
-                                    .background(
-                                        color = Color.LightGray,
-                                        shape = CircleShape
-                                    )
-                                    .border(
-                                        width = 0.5.dp,
-                                        color = ProfessionalTheme.PurpleBorder,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .padding(20.dp)
                             ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.lokachakralogo3),
-                                    contentDescription = "Welcome",
+                                // Enhanced Icon Section with pulsing effect
+                                Box(
                                     modifier = Modifier
-                                        .size(50.dp)
-                                        .clip(CircleShape)
-                                        .rotate(rotation)
-                                )
-                            }
+                                        .size(70.dp)
+                                        .shadow(
+                                            elevation = 12.dp,
+                                            shape = CircleShape,
+                                            spotColor = Color.White.copy(alpha = 0.5f)
+                                        )
+                                        .background(
+                                            brush = Brush.radialGradient(
+                                                colors = listOf(
+                                                    ProfessionalTheme.White,
+                                                    ProfessionalTheme.Background
+                                                )
+                                            ),
+                                            shape = CircleShape
+                                        )
+                                        .border(
+                                            width = 2.dp,
+                                            brush = Brush.linearGradient(
+                                                colors = listOf(
+                                                    ProfessionalTheme.White.copy(alpha = 0.8f),
+                                                    ProfessionalTheme.White.copy(alpha = 0.4f)
+                                                )
+                                            ),
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.lokachakralogo3),
+                                        contentDescription = "Welcome",
+                                        modifier = Modifier
+                                            .size(55.dp)
+                                            .clip(CircleShape)
+                                            .rotate(rotation)
+                                            .scale(
+                                                animateFloatAsState(
+                                                    targetValue = if (headerVisible) 1f else 0f,
+                                                    animationSpec = spring(
+                                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                        stiffness = Spring.StiffnessLow
+                                                    ),
+                                                    label = "logoScale"
+                                                ).value
+                                            )
+                                    )
+                                }
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(20.dp))
 
-                            // Text Section
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.Start,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = "Welcome to lokachakra",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Select your role to get started",
-                                    fontSize = 14.sp,
-                                    color = Color.LightGray
-                                )
+                                // Enhanced Text Section with staggered animation
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.Start,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = "Welcome to Lokachakra",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = ProfessionalTheme.White,
+                                        modifier = Modifier.animateContentSize()
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Select your role to get started",
+                                        fontSize = 15.sp,
+                                        color = ProfessionalTheme.White.copy(alpha = 0.9f),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }
@@ -339,44 +451,51 @@ fun StartScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Role Selection Grid
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                // Enhanced Role Selection Grid with staggered animations
+                AnimatedVisibility(
+                    visible = cardsVisible,
+                    enter = slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = tween(400, easing = EaseOutCubic)
+                    ) + fadeIn(animationSpec = tween(400))
                 ) {
-                    itemsIndexed(roles) { index, role ->
-                        AnimatedRoleCard(
-                            role = role,
-                            isSelected = selectedRole == role.id,
-                            delay = 0,
-                            selectedcolor = role.color,
-                            unselectedcolor = role.color.copy(alpha = 0.5f),
-                            onRoleClick = {
-                                selectedRole = if (selectedRole == role.id) null else role.id
-                            }
-                        )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        itemsIndexed(roles) { index, role ->
+                            AnimatedRoleCard(
+                                role = role,
+                                isSelected = selectedRole == role.id,
+                                delay = index * 150L,
+                                selectedcolor = role.color,
+                                unselectedcolor = role.color.copy(alpha = 0.7f),
+                                pulseScale = if (selectedRole == role.id) pulseScale else 1f,
+                                onRoleClick = {
+                                    selectedRole = if (selectedRole == role.id) null else role.id
+                                }
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Bottom section with white background
+                // Bottom section with enhanced animation
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = ProfessionalTheme.White
+                    color = Color.Transparent
                 ) {
                     AnimatedActionSection(
                         selectedRole = selectedRole,
                         onContinue = {
                             selectedRole?.let { roleId ->
-                                // Update ViewModel with selected role (not login state)
                                 updateViewModelForRole(roleId)
-                                // Call the original callback
                                 onRoleSelected(roleId)
                             }
                         },
@@ -397,12 +516,14 @@ fun AnimatedRoleCard(
     isSelected: Boolean,
     delay: Long,
     selectedcolor: Color,
-    unselectedcolor : Color,
+    unselectedcolor: Color,
+    pulseScale: Float = 1f,
     onRoleClick: () -> Unit
 ) {
     var isVisible by remember { mutableStateOf(false) }
     var isPressed by remember { mutableStateOf(false) }
 
+    // Add delay before showing the card
     LaunchedEffect(Unit) {
         delay(delay)
         isVisible = true
@@ -410,8 +531,8 @@ fun AnimatedRoleCard(
 
     val scale by animateFloatAsState(
         targetValue = when {
-            isSelected -> 1.05f
-            isPressed -> 0.98f
+            isSelected -> 1.005f * pulseScale
+            isPressed -> 0.95f
             else -> 1f
         },
         animationSpec = spring(
@@ -422,37 +543,59 @@ fun AnimatedRoleCard(
     )
 
     val elevation by animateFloatAsState(
-        targetValue = if (isSelected) 16f else 6f,
+        targetValue = if (isSelected) 20f else 8f,
         animationSpec = spring(dampingRatio = 0.8f),
         label = "elevation"
+    )
+
+    val borderWidth by animateFloatAsState(
+        targetValue = if (isSelected) 3f else 1.5f,
+        animationSpec = tween(300),
+        label = "borderWidth"
     )
 
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(600, easing = EaseOutCubic)
-        ) + fadeIn(animationSpec = tween(600))
+            initialOffsetY = { it * 2 },
+            animationSpec = tween<IntOffset>(600, easing = EaseOutBack)
+        ) + fadeIn(
+            animationSpec = tween<Float>(600, easing = EaseOutBack)
+        ) + scaleIn(
+            initialScale = 0.8f,
+            animationSpec = tween<Float>(600, easing = EaseOutBack)
+        )
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(170.dp)
+                .height(180.dp)
                 .scale(scale)
                 .shadow(
                     elevation = elevation.dp,
-                    shape = RoundedCornerShape(18.dp),
-                    ambientColor = ProfessionalTheme.BlueShadowLight,
-                    spotColor = ProfessionalTheme.BlueShadow.copy(alpha = if (isSelected) 0.4f else 0.2f)
+                    shape = RoundedCornerShape(20.dp),
+                    ambientColor = selectedcolor.copy(alpha = 0.2f),
+                    spotColor = selectedcolor.copy(alpha = if (isSelected) 0.5f else 0.3f)
                 )
                 .border(
-                    width = if (isSelected) 3.dp else 2.dp,
-                    color = if (isSelected) {
-                        selectedcolor
+                    width = borderWidth.dp,
+                    brush = if (isSelected) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                selectedcolor,
+                                selectedcolor.copy(alpha = 0.7f),
+                                selectedcolor
+                            )
+                        )
                     } else {
-                        unselectedcolor
+                        Brush.linearGradient(
+                            colors = listOf(
+                                unselectedcolor,
+                                unselectedcolor.copy(alpha = 0.5f)
+                            )
+                        )
                     },
-                    shape = RoundedCornerShape(18.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -461,31 +604,60 @@ fun AnimatedRoleCard(
                     isPressed = true
                     onRoleClick()
                 },
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = ProfessionalTheme.White
+                containerColor = Color.Transparent
             )
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                // Selection Indicator
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = if (isSelected) {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color.White,
+                                    selectedcolor.copy(alpha = 0.05f),
+                                    Color.White
+                                ),
+                                start = Offset.Zero,
+                                end = Offset.Infinite
+                            )
+                        } else {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    ProfessionalTheme.White,
+                                    ProfessionalTheme.Background
+                                )
+                            )
+                        }
+                    )
+            ) {
+                // Enhanced Selection Indicator with animation
                 if (isSelected) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .offset((-12).dp, 12.dp)
-                            .size(28.dp)
+                            .size(32.dp)
+                            .scale(pulseScale)
                             .shadow(
-                                elevation = 6.dp,
+                                elevation = 8.dp,
                                 shape = CircleShape,
-                                spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.5f)
+                                spotColor = selectedcolor.copy(alpha = 0.6f)
                             )
                             .background(
-                                color = selectedcolor,
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        selectedcolor,
+                                        selectedcolor.copy(alpha = 0.8f)
+                                    )
+                                ),
                                 shape = CircleShape
                             )
                             .border(
                                 width = 2.dp,
-                                color = ProfessionalTheme.White,
+                                color = Color.White,
                                 shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
@@ -494,7 +666,7 @@ fun AnimatedRoleCard(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Selected",
                             tint = ProfessionalTheme.White,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -504,27 +676,51 @@ fun AnimatedRoleCard(
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(18.dp)
                 ) {
-                    // Professional Icon Container
+                    // Enhanced Professional Icon Container
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(64.dp)
                             .shadow(
-                                elevation = 4.dp,
+                                elevation = if (isSelected) 8.dp else 4.dp,
                                 shape = CircleShape,
-                                spotColor = ProfessionalTheme.BlueShadow.copy(alpha = 0.3f)
+                                spotColor = selectedcolor.copy(alpha = 0.4f)
                             )
                             .background(
-                                color = ProfessionalTheme.White,
+                                brush = if (isSelected) {
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            Color.White,
+                                            selectedcolor.copy(alpha = 0.1f)
+                                        )
+                                    )
+                                } else {
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            ProfessionalTheme.White,
+                                            ProfessionalTheme.Background
+                                        )
+                                    )
+                                },
                                 shape = CircleShape
                             )
                             .border(
-                                width = 2.dp,
-                                color = if (isSelected) {
-                                    selectedcolor
+                                width = if (isSelected) 2.5.dp else 2.dp,
+                                brush = if (isSelected) {
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            selectedcolor,
+                                            selectedcolor.copy(alpha = 0.6f)
+                                        )
+                                    )
                                 } else {
-                                    unselectedcolor
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            unselectedcolor,
+                                            unselectedcolor.copy(alpha = 0.4f)
+                                        )
+                                    )
                                 },
                                 shape = CircleShape
                             ),
@@ -534,29 +730,37 @@ fun AnimatedRoleCard(
                             imageVector = role.icon,
                             contentDescription = role.title,
                             tint = if (isSelected) selectedcolor else unselectedcolor,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier
+                                .size(30.dp)
+                                .scale(
+                                    animateFloatAsState(
+                                        targetValue = if (isSelected) 1.1f else 1f,
+                                        animationSpec = spring(dampingRatio = 0.6f),
+                                        label = "iconScale"
+                                    ).value
+                                )
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
                         text = role.title,
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) selectedcolor else ProfessionalTheme.OnSurface,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
                         text = role.description,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = ProfessionalTheme.OnSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        lineHeight = 14.sp,
+                        lineHeight = 16.sp,
                         maxLines = 2
                     )
                 }
@@ -588,13 +792,20 @@ fun AnimatedActionSection(
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
+        enter = slideInVertically(
+            initialOffsetY = { it },
+            animationSpec = tween(800, easing = EaseOutBack)
+        ) + fadeIn(animationSpec = tween(800)) +
+                scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = tween(800, easing = EaseOutBack)
+                )
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(ProfessionalTheme.White)
+                .background(Color.Transparent)
                 .padding(16.dp)
         ) {
             // Enhanced Animated Action Button
@@ -603,36 +814,67 @@ fun AnimatedActionSection(
                 enabled = selectedRole != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (selectedRole != null) {
-                        buttonColor // Animated purple color
+                        Color.Transparent
                     } else {
-                        Color.DarkGray// Light gray when disabled
+                        ProfessionalTheme.OnSurfaceVariant.copy(alpha = 0.6f)
                     },
                     contentColor = if (selectedRole != null) {
                         ProfessionalTheme.White
                     } else {
-                        Color.Black// Gray text when disabled
+                        ProfessionalTheme.OnSurface
                     }
                 ),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp)
+                    .height(56.dp)
                     .shadow(
-                        elevation = if (selectedRole != null) 12.dp else 3.dp,
-                        shape = RoundedCornerShape(14.dp),
+                        elevation = if (selectedRole != null) 16.dp else 4.dp,
+                        shape = RoundedCornerShape(16.dp),
                         spotColor = if (selectedRole != null) {
-                            ProfessionalTheme.BlueShadow.copy(alpha = 0.4f)
+                            buttonColor.copy(alpha = 0.5f)
                         } else {
                             Color.Gray.copy(alpha = 0.2f)
                         },
-                        ambientColor = ProfessionalTheme.BlueShadowLight
-                    ),
-                border = if (selectedRole != null) {
-                    BorderStroke(
-                        width = 1.dp,
-                        color = ProfessionalTheme.Purple.copy(alpha = 0.3f)
+                        ambientColor = if (selectedRole != null) {
+                            buttonColor.copy(alpha = 0.3f)
+                        } else {
+                            Color.Gray.copy(alpha = 0.1f)
+                        }
                     )
-                } else null
+                    .background(
+                        brush = if (selectedRole != null) {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    buttonColor,
+                                    buttonColor.copy(alpha = 0.8f),
+                                    buttonColor
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    ProfessionalTheme.OnSurfaceVariant.copy(alpha = 0.6f),
+                                    ProfessionalTheme.OnSurfaceVariant.copy(alpha = 0.8f)
+                                )
+                            )
+                        },
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        width = if (selectedRole != null) 1.dp else 0.dp,
+                        brush = if (selectedRole != null) {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    ProfessionalTheme.White.copy(alpha = 0.3f),
+                                    ProfessionalTheme.White.copy(alpha = 0.1f)
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(colors = listOf(Color.Transparent, Color.Transparent))
+                        },
+                        shape = RoundedCornerShape(16.dp)
+                    )
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -640,16 +882,25 @@ fun AnimatedActionSection(
                 ) {
                     Text(
                         text = if (selectedRole != null) "Continue" else "Select a Role to Continue",
-                        fontSize = 16.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (selectedRole == null) Color.DarkGray else Color.White
+                        color = if (selectedRole == null) ProfessionalTheme.OnSurface else ProfessionalTheme.White
                     )
                     if (selectedRole != null) {
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
                             contentDescription = "Continue",
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier
+                                .size(22.dp)
+                                .scale(
+                                    animateFloatAsState(
+                                        targetValue = if (selectedRole != null) 1f else 0f,
+                                        animationSpec = spring(dampingRatio = 0.6f),
+                                        label = "arrowScale"
+                                    ).value
+                                ),
+                            tint = Color.White
                         )
                     }
                 }

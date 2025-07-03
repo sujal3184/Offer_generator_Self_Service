@@ -219,8 +219,10 @@ object InternshipDataManager {
         _applications.addAll(sampleApplications)
         totalSubmissions += sampleApplications.size
     }
+
     /**
      * Submit a new internship application
+     * New applications are added at the beginning of the list to show latest first
      */
     fun submitApplication(formData: FormData): InternshipApplication {
         val application = InternshipApplication(
@@ -246,33 +248,10 @@ object InternshipDataManager {
             status = ApplicationStatus.SUBMITTED
         )
 
-        _applications.add(application)
+        // Add new application at the beginning of the list (index 0)
+        _applications.add(0, application)
         totalSubmissions++
         return application
-    }
-
-    /**
-     * Update application status
-     */
-    fun updateApplicationStatus(
-        id: String,
-        newStatus: ApplicationStatus,
-        reviewedBy: String? = null,
-        hrComments: String? = null
-    ): Boolean {
-        val index = _applications.indexOfFirst { it.id == id }
-        return if (index != -1) {
-            val currentApp = _applications[index]
-            _applications[index] = currentApp.copy(
-                status = newStatus,
-                reviewedBy = reviewedBy ?: currentApp.reviewedBy,
-                reviewDate = if (reviewedBy != null) SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date()) else currentApp.reviewDate,
-                hrComments = hrComments ?: currentApp.hrComments
-            )
-            true
-        } else {
-            false
-        }
     }
 
     /**
@@ -298,24 +277,37 @@ object InternshipDataManager {
     }
 
     /**
-     * Get applications by status
+     * Get applications by status (sorted by submission date - latest first)
      */
     fun getApplicationsByStatus(status: ApplicationStatus): List<InternshipApplication> {
         return _applications.filter { it.status == status }
     }
 
     /**
-     * Get applications by college
+     * Get applications by college (sorted by submission date - latest first)
      */
     fun getApplicationsByCollege(college: String): List<InternshipApplication> {
         return _applications.filter { it.college.contains(college, ignoreCase = true) }
     }
 
     /**
-     * Get applications by internship role
+     * Get applications by internship role (sorted by submission date - latest first)
      */
     fun getApplicationsByRole(role: String): List<InternshipApplication> {
         return _applications.filter { it.internshipRole.contains(role, ignoreCase = true) }
+    }
+
+    /**
+     * Get applications sorted by submission date (latest first)
+     */
+    fun getApplicationsSortedByDate(): List<InternshipApplication> {
+        return _applications.sortedByDescending { application ->
+            try {
+                SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).parse(application.submissionDate)
+            } catch (e: Exception) {
+                Date(0) // Return epoch time if parsing fails
+            }
+        }
     }
 
     /**
@@ -340,66 +332,4 @@ object InternshipDataManager {
         totalSubmissions = 0
     }
 
-    /**
-     * Add multiple sample applications for comprehensive testing
-     */
-    fun addMoreSampleApplications() {
-        val sampleApplications = listOf(
-            InternshipApplication(
-                id = "sample-002",
-                submissionDate = "16/06/2025 10:15:00",
-                fullName = "Rahul Gupta",
-                dateOfBirth = "22/08/2002",
-                yearOfStudy = "4th Year",
-                college = "Delhi Technological University",
-                branch = "Information Technology",
-                availableFrom = "20/06/2025",
-                availableUntil = "20/08/2025",
-                internshipRole = "Backend Developer",
-                skills = listOf("Java", "Spring Boot", "MySQL", "REST APIs", "Docker"),
-                cvFileName = "Rahul_Gupta_CV.pdf",
-                cvFilePath = "/storage/emulated/0/Documents/Rahul_Gupta_CV.pdf",
-                mobileNumber = "+91 8765432109",
-                email = "rahul.gupta@dtu.ac.in",
-                linkedinProfile = "https://linkedin.com/in/rahul-gupta-backend",
-                githubLink = "https://github.com/rahulgupta-backend",
-                portfolioWebsite = "https://rahulgupta.tech",
-                references = "Prof. Anita Singh, IT Department, DTU - anita.singh@dtu.ac.in",
-                personalStatement = "Backend development enthusiast with experience in Java and Spring Boot. I have worked on several projects involving REST API development and database management.",
-                status = ApplicationStatus.UNDER_REVIEW,
-                reviewedBy = "HR Team",
-                reviewDate = "17/06/2025 09:30:00",
-                hrComments = "Strong technical background, scheduled for technical interview."
-            ),
-            InternshipApplication(
-                id = "sample-003",
-                submissionDate = "17/06/2025 16:45:00",
-                fullName = "Sneha Patel",
-                dateOfBirth = "10/12/2003",
-                yearOfStudy = "2nd Year",
-                college = "Netaji Subhas University of Technology",
-                branch = "Electronics and Communication",
-                availableFrom = "01/08/2025",
-                availableUntil = "30/09/2025",
-                internshipRole = "UI/UX Designer",
-                skills = listOf("Figma", "Adobe XD", "Sketch", "Prototyping", "User Research"),
-                cvFileName = "Sneha_Patel_Portfolio.pdf",
-                cvFilePath = "/storage/emulated/0/Documents/Sneha_Patel_Portfolio.pdf",
-                mobileNumber = "+91 7654321098",
-                email = "sneha.patel@nsut.ac.in",
-                linkedinProfile = "https://linkedin.com/in/sneha-patel-ux",
-                githubLink = "https://github.com/sneha-design",
-                portfolioWebsite = "https://snehapatel.design",
-                references = "Dr. Meera Sharma, ECE Department, NSUT - meera.sharma@nsut.ac.in",
-                personalStatement = "Creative designer passionate about creating intuitive user experiences. I have designed several mobile app interfaces and conducted user research for various projects.",
-                status = ApplicationStatus.ACCEPTED,
-                reviewedBy = "Design Team Lead",
-                reviewDate = "18/06/2025 11:20:00",
-                hrComments = "Excellent portfolio, great fit for our design team. Offer letter to be generated."
-            )
-        )
-
-        _applications.addAll(sampleApplications)
-        totalSubmissions += sampleApplications.size
-    }
 }

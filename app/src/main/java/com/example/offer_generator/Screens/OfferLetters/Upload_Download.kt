@@ -404,13 +404,13 @@ fun SignedOfferLetterScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "${offer.position} • ${offer.companyName}",
+                            text = "${offer.position} in ${offer.companyName}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = textSecondary,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                         Text(
-                            text = "Candidate: ${offer.candidateName}",
+                            text = "Candidate:   ${offer.candidateName}",
                             style = MaterialTheme.typography.bodySmall,
                             color = textSecondary,
                             modifier = Modifier.padding(top = 2.dp)
@@ -769,26 +769,6 @@ private fun DocumentUploadedContent(
                     imageVector = statusIcon.first,
                     contentDescription = "Status",
                     modifier = Modifier.size(48.dp),
-                    tint = statusIcon.second
-                )
-            }
-        }
-
-        if (!showSuccessAnimation) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(
-                        statusIcon.second.copy(alpha = 0.15f),
-                        CircleShape
-                    )
-                    .shadow(6.dp, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = statusIcon.first,
-                    contentDescription = "Status",
-                    modifier = Modifier.size(36.dp),
                     tint = statusIcon.second
                 )
             }
